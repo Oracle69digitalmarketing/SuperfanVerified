@@ -1,6 +1,9 @@
 {
   "build": {
-    "concurrency": 1,
+    "concurrency": {
+      "android": 1,
+      "ios": 1
+    },
     "development": {
       "developmentClient": true,
       "distribution": "internal"
