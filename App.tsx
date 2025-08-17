@@ -6,7 +6,7 @@ import MainApp from './MainApp';
 
 const App = () => {
   const config = {
-    rpcUrl: 'https://accounts.spotify.com/authorize',
+    rpcUrl: 'https://rpc.xion-testnet-2.burnt.com:443',
     chainId: 'xion-testnet-2'
   };
 
