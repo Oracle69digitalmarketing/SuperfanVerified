@@ -6,7 +6,6 @@ import LogRocket from '@logrocket/react-native';
 import Constants from 'expo-constants';
 import { AbstraxionProvider } from '@burnt-labs/abstraxion-react-native';
 import MainApp from './MainApp';
-import Constants from 'expo-constants';
 
 const App = () => {
   useEffect(() => {
@@ -19,10 +18,6 @@ const App = () => {
   const config = {
     rpcUrl: Constants.expoConfig.extra.RPC_URL,
     chainId: Constants.expoConfig.extra.CHAIN_ID
-
-    rpcUrl: Constants.expoConfig?.extra?.RPC_URL,
-    chainId: Constants.expoConfig?.extra?.CHAIN_ID
-
   };
 
   return (
