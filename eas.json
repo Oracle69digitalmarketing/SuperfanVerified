@@ -1,5 +1,6 @@
 {
   "build": {
+    "concurrency": {},
     "development": {
       "developmentClient": true,
       "distribution": "internal"
@@ -10,6 +11,11 @@
     },
     "production": {
       "channel": "production"
+      "concurrency": 1,
+      "channel": "production",
+      "env": {
+        "RPC_URL": "https://rpc.xion-testnet-2.burnt.com:443",
+        "CHAIN_ID": "xion-testnet-2"
     }
   }
 }

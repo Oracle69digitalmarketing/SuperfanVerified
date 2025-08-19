@@ -1,4 +1,5 @@
-// app.config.ts
+// app.config.t
+  // app.config.ts
 module.exports = {
   expo: {
     name: "SuperfanVerified",
@@ -51,3 +52,33 @@ module.exports = {
     ]
   }
 };
+                                                                                              adaptiveIcon: {
+                                                                                                        foregroundImage: "./assets/adaptive-icon.png",
+                                                                                                                backgroundColor: "#ffffff"
+                                                                                                                      },
+                                                                                                                            package: "com.oracle69digitalmarketing.superfanverified"
+                                                                                                                                },
+                                                                                                                                    web: {
+                                                                                                                                          favicon: "./assets/favicon.png"
+                                                                                                                                              },
+                                                                                                                                                  extra: {
+                                                                                                                                                        eas: {
+                                                                                                                                                                projectId: "8203d4d6-e559-4279-9ddc-4403c4243c9f"
+                                                                                                                                                                      },
+                                                                                                                                                                            // You should not hardcode these values
+                                                                                                                                                                                  RPC_URL: process.env.RPC_URL,
+                                                                                                                                                                                        CHAIN_ID: process.env.C0                                                                                                                                                                            spotifyClientId: process.env.SPOTIFY_CLIENT_ID,
+                                                                                                                                                                                                    spotifyClientSecret: process.env.SPOTIFY_CLIENT_SECRET
+                                                                                                                                                                                                        },
+                                                                                                                                                                                                            plugins: [
+                                                                                                                                                                                                                  [
+                                                                                                                                                                                                                          "expo-build-properties",
+                                                                                                                                                                                                                                  {
+                                                                                                                                                                                                                                            "android": {
+                                                                                                                                                                                                                                                        "minSdkVersion": 25
+                                                                                                                                                                                                                                                                  }
+                                                                                                                                                                                                                                                                          }
+                                                                                                                                                                                                                                                                                ],
+                                                                                                                                                                                                                                                                                      "@logrocket/react-native"
+                                                                                                                                                                                                                                                                                          ]
+                                                                                                                                                                                                                                                                                            
