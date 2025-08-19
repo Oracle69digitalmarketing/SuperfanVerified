@@ -17,6 +17,17 @@ export default {
     // Expose secrets from .env
     spotifyClientId: process.env.SPOTIFY_CLIENT_ID,
     spotifyClientSecret: process.env.SPOTIFY_CLIENT_SECRET
-  }
+  },
+  plugins: [
+    [
+      "expo-build-properties",
+      {
+        "android": {
+          "minSdkVersion": 25
+        }
+      }
+    ],
+    "@logrocket/react-native"
+  ]
 };
 
