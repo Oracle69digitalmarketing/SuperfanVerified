@@ -3,9 +3,9 @@ import './globals'; // This must be the very first import
 import React, { useEffect } from 'react';
 import * as Updates from 'expo-updates';
 import LogRocket from '@logrocket/react-native';
+import Constants from 'expo-constants';
 import { AbstraxionProvider } from '@burnt-labs/abstraxion-react-native';
 import MainApp from './MainApp';
-import Constants from 'expo-constants';
 
 const App = () => {
   useEffect(() => {
@@ -16,8 +16,8 @@ const App = () => {
   }, []);
 
   const config = {
-    rpcUrl: Constants.expoConfig?.extra?.RPC_URL,
-    chainId: Constants.expoConfig?.extra?.CHAIN_ID
+    rpcUrl: Constants.expoConfig.extra.RPC_URL,
+    chainId: Constants.expoConfig.extra.CHAIN_ID
   };
 
   return (
