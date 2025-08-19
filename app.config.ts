@@ -33,7 +33,6 @@ module.exports = {
       eas: {
         projectId: "8203d4d6-e559-4279-9ddc-4403c4243c9f"
       },
-      // You should not hardcode these values
       RPC_URL: "https://rpc.xion-testnet-2.burnt.com:443",
       CHAIN_ID: "xion-testnet-2",
       spotifyClientId: process.env.SPOTIFY_CLIENT_ID,
