@@ -1,8 +1,19 @@
 // app.config.ts
 module.exports = ({ config }) => {
+  
+  // `config` can be empty when running `npx expo config` in a clean environment.
+  // We need to provide default empty objects to avoid `undefined` errors.
+  const expoConfig = config?.expo || {};
+  const extraConfig = expoConfig?.extra || {};
+
+  return {
+    expo: {
+      ...expoConfig,
+
   return {
     expo: {
       ...config.expo,
+
       name: "SuperfanVerified",
       slug: "superfanverified",
       version: "1.0.0",
@@ -32,7 +43,11 @@ module.exports = ({ config }) => {
         favicon: "./assets/favicon.png"
       },
       extra: {
+
+        ...extraConfig,
+
         ...config.expo.extra,
+
         eas: {
           projectId: "8203d4d6-e559-4279-9ddc-4403c4243c9f"
         },
