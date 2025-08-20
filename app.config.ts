@@ -21,6 +21,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     assetBundlePatterns: [
       "**/*"
     ],
+    updates: {
+      "url": "https://u.expo.dev/8203d4d6-e559-4279-9ddc-4403c4243c9f"
+    },
+    runtimeVersion: {
+      "policy": "appVersion"
+    },
     ios: {
       ...(expoConfig.ios || {}),
       bundleIdentifier: "com.oracle69digitalmarketing.superfanverified",
@@ -38,12 +44,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ...(expoConfig.web || {}),
       favicon: "./assets/favicon.png"
     },
-    
-    import { ExpoConfig, ConfigContext } from '@expo/config';
-
-export default ({ config }: ConfigContext): ExpoConfig => {
-};
-
     extra: {
       ...extraConfig,
       eas: {
@@ -62,7 +62,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         {
           "android": {
             "minSdkVersion": 25
-         }
+          }
         }
       ],
       "@logrocket/react-native"
