@@ -38,6 +38,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
                                                                                                                                                               ...(expoConfig.web || {}),
                                                                                                                                                                     favicon: "./assets/favicon.png"
                                                                                                                                                                         },
+                                                                                                                                                                      cli: {
+  appVersionSource: "version"
+},  
                                                                                                                                                                             extra: {
                                                                                                                                                                                   ...extraConfig,
                                                                                                                                                                                         eas: {
