@@ -16,8 +16,8 @@ const App = () => {
   }, []);
 
   const config = {
-    rpcUrl: Constants.expoConfig?.extra?.RPC_URL,
-    chainId: Constants.expoConfig?.extra?.CHAIN_ID
+    rpcUrl: Constants.expoConfig.extra.RPC_URL,
+    chainId: Constants.expoConfig.extra.CHAIN_ID
   };
 
   return (
