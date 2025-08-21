@@ -1,7 +1,7 @@
 // app.config.ts
 import { ExpoConfig, ConfigContext } from '@expo/config';
 
-export default ({ config }: ConfigContext): ExpoConfig => {
+export default ({ config }) => {
   const expoConfig = config || {};
   const extraConfig = expoConfig.extra || {};
 
@@ -18,14 +18,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       resizeMode: "contain",
       backgroundColor: "#ffffff"
     },
-    assetBundlePatterns: [
-      "**/*"
-    ],
+    assetBundlePatterns: ["**/*"],
     updates: {
-      "url": "https://u.expo.dev/8203d4d6-e559-4279-9ddc-4403c4243c9f"
+      url: "https://u.expo.dev/8203d4d6-e559-4279-9ddc-4403c4243c9f"
     },
     runtimeVersion: {
-      "policy": "appVersion"
+      policy: "appVersion"
     },
     ios: {
       ...(expoConfig.ios || {}),
@@ -44,12 +42,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ...(expoConfig.web || {}),
       favicon: "./assets/favicon.png"
     },
-
-    import { ExpoConfig, ConfigContext } from '@expo/config';
-
-export default ({ config }: ConfigContext): ExpoConfig => {
-};
-  
+    cli: {
+      appVersionSource: "version"
+    },
     extra: {
       ...extraConfig,
       eas: {
@@ -66,8 +61,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       [
         "expo-build-properties",
         {
-          "android": {
-            "minSdkVersion": 25
+          android: {
+            minSdkVersion: 25
           }
         }
       ],
