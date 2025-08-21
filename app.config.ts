@@ -44,6 +44,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ...(expoConfig.web || {}),
       favicon: "./assets/favicon.png"
     },
+
+    import { ExpoConfig, ConfigContext } from '@expo/config';
+
+export default ({ config }: ConfigContext): ExpoConfig => {
+};
+  
     extra: {
       ...extraConfig,
       eas: {
