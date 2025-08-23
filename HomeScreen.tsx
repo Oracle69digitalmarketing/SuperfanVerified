@@ -10,7 +10,7 @@ const HomeScreen = () => {
       <Text style={styles.title}>Welcome, Prince 👑</Text>
 
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Staking')}>
-        <Text style={styles.buttonText}>�� Stake Now</Text>
+        <Text style={styles.buttonText}>🪙 Stake Now</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Governance')}>
