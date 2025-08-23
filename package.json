@@ -20,6 +20,7 @@
     "expo-auth-session": "^6.2.1",
     "expo-build-properties": "^0.14.8",
     "expo-dev-client": "~5.2.4",
+    "expo-sqlite": "~15.2.14",
     "expo-status-bar": "~2.2.3",
     "expo-updates": "~0.28.17",
     "expo-web-browser": "^14.2.0",
