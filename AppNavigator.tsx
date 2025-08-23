@@ -1,10 +1,26 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import HomeScreen from './screens/HomeScreen'; // Adjust path as needed
+import ProfileScreen from './screens/ProfileScreen'; // Example second screen
+
+const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text style={{ fontSize: 20, color: '#58a6ff' }}>✅ App Loaded Successfully</Text>
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen 
+          name="Home" 
+          component={HomeScreen} 
+          options={{ title: 'Welcome Home' }} 
+        />
+        <Stack.Screen 
+          name="Profile" 
+          component={ProfileScreen} 
+          options={{ title: 'Your Profile' }} 
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
