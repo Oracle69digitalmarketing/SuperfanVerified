@@ -35,6 +35,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     RPC_URL: 'https://rpc.testnet.xion.dev',
     CHAIN_ID: 42069,
+    sentryDsn: 'https://97d9e1d6551dfd69929529dd6b4658c6@o4509865650421760.ingest.de.sentry.io/4509884240822352',
   },
-  plugins: ['expo-sqlite'],
+  plugins: ['expo-sqlite', 'sentry-expo'],
 });
