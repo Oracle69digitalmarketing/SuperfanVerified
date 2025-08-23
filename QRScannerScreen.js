@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Button, Linking, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 
 const QRScannerScreen = () => {
-  const = useState(null);
+  const [scannedData, setScannedData] = useState(null);
   const [permission, requestPermission] = useCameraPermissions();
 
   // Handle scanned data
