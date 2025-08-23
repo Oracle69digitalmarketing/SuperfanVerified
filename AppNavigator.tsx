@@ -1,26 +1,28 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from './screens/HomeScreen'; // Adjust path as needed
-import ProfileScreen from './screens/ProfileScreen'; // Example second screen
+import { createStackNavigator } from '@react-navigation/stack';
+import HomeScreen from './screens/HomeScreen';
+import StakingScreen from './screens/StakingScreen';
+import GovernanceScreen from './screens/GovernanceScreen';
+import QRScannerScreen from './screens/QRScannerScreen';
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
-export default function AppNavigator() {
+const AppNavigator = () => {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen 
-          name="Home" 
-          component={HomeScreen} 
-          options={{ title: 'Welcome Home' }} 
-        />
-        <Stack.Screen 
-          name="Profile" 
-          component={ProfileScreen} 
-          options={{ title: 'Your Profile' }} 
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Stack.Navigator
+      initialRouteName="Home"
+      screenOptions={{
+        headerStyle: { backgroundColor: '#0f172a' },
+        headerTintColor: '#facc15',
+        headerTitleStyle: { fontWeight: 'bold' },
+      }}
+    >
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Staking" component={StakingScreen} />
+      <Stack.Screen name="Governance" component={GovernanceScreen} />
+      <Stack.Screen name="QRScanner" component={QRScannerScreen} />
+    </Stack.Navigator>
   );
-}
+};
+
+export default AppNavigator;
