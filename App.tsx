@@ -1,9 +1,12 @@
 import 'react-native-get-random-values';
 import 'react-native-url-polyfill/auto';
 import React, { useEffect } from 'react';
+import { enableScreens } from 'react-native-screens';
 import * as SQLite from 'expo-sqlite';
 import WalletProvider from './WalletProvider';
 import AppNavigator from './AppNavigator';
+
+enableScreens(); // Improves performance for navigation
 
 const db = SQLite.openDatabase('my-database.db');
 
