@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { useRoute } from '@react-navigation/native';
 import * as SQLite from 'expo-sqlite';
 
+const route = useRoute();
+const { event_id, user_id, referrer } = route.params || {};
 const db = SQLite.openDatabase('my-database.db');
 
 const EventCheckInScreen = () => {
   const [checkIns, setCheckIns] = useState([]);
+
 
   useEffect(() => {
     db.transaction(tx => {
