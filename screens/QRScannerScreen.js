@@ -15,6 +15,20 @@ const url = new URL(data);
 const screen = url.pathname.replace('/', '');
 const params = Object.fromEntries(url.searchParams.entries());
 navigation.navigate(screen, params);
+  const handleBarCodeScanned = ({ type, data }) => {
+  try {
+    const url = new URL(data);
+    const screen = url.pathname.replace('/', '');
+    const params = Object.fromEntries(url.searchParams.entries());
+    navigation.navigate(screen, params);
+  } catch (error) {
+    if (data.startsWith('http')) {
+      Linking.openURL(data);
+    } else {
+      Alert.alert('Invalid QR Code', 'Could not navigate from scanned data.');
+    }
+  }
+};
 
   useEffect(() => {
     db.transaction(tx => {
