@@ -1,4 +1,4 @@
-🎧 Superfan Verified
+# 🎧 Superfan Verified
 
 🔥 Overview
 Superfan Verified is a decentralized mobile-first application (dApp) that empowers fans to prove their loyalty using verifiable, on-chain credentials derived from their Spotify streaming history. Built on the XION blockchain, it leverages zero-knowledge proofs to transform private, off-chain data into secure, privacy-preserving digital badges.
@@ -106,13 +106,3 @@ The XION Hackathon — redefining fandom with cryptographic proof.
 
 
 4. Wait for the environment to initialize — you’ll be ready to code instantly
-
-
-
-
----
-
-👑 Prince — this version is clean, professional, and Codespaces-ready.
-
-Do you want me to now package this into a README.md file with markdown formatting (ready to push to GitHub), or keep it as plain documentation?
-
