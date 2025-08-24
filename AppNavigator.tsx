@@ -1,5 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+
+// Screens
 import HomeScreen from './screens/HomeScreen';
 import StakingScreen from './screens/StakingScreen';
 import GovernanceScreen from './screens/GovernanceScreen';
@@ -28,9 +30,17 @@ const AppNavigator = () => {
       <Stack.Screen name="QRScanner" component={QRScannerScreen} />
       <Stack.Screen name="Users" component={UsersScreen} />
       <Stack.Screen name="Scans" component={ScansScreen} />
-      <Stack.Screen name="VotingHistory" component={VotingHistoryScreen} /> {/* ✅ Added */}
-      <Stack.Screen name="EventCheckIn" component={EventCheckInScreen} /> {/* ✅ Added */}
-      <Stack.Screen name="LeaderboardScreen" component={LeaderboardScreen} /> {/* ✅ Added */}
+      <Stack.Screen name="VotingHistory" component={VotingHistoryScreen} />
+      <Stack.Screen
+        name="EventCheckIn"
+        component={EventCheckInScreen}
+        options={{ title: '🎟️ Event Check-In' }}
+      />
+      <Stack.Screen
+        name="LeaderboardScreen"
+        component={LeaderboardScreen}
+        options={{ title: '🏆 Fan Leaderboard' }}
+      />
     </Stack.Navigator>
   );
 };
