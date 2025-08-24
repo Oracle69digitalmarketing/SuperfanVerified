@@ -4,7 +4,8 @@ import HomeScreen from './screens/HomeScreen';
 import StakingScreen from './screens/StakingScreen';
 import GovernanceScreen from './screens/GovernanceScreen';
 import QRScannerScreen from './screens/QRScannerScreen';
-import UsersScreen from './screens/UsersScreen'; // ✅ Add this
+import UsersScreen from './screens/UsersScreen';
+import ScansScreen from './screens/ScansScreen'; // ✅ Added this
 
 const Stack = createStackNavigator();
 
@@ -22,7 +23,8 @@ const AppNavigator = () => {
       <Stack.Screen name="Staking" component={StakingScreen} />
       <Stack.Screen name="Governance" component={GovernanceScreen} />
       <Stack.Screen name="QRScanner" component={QRScannerScreen} />
-      <Stack.Screen name="Users" component={UsersScreen} /> {/* ✅ Add this */}
+      <Stack.Screen name="Users" component={UsersScreen} />
+      <Stack.Screen name="Scans" component={ScansScreen} /> {/* ✅ New screen */}
     </Stack.Navigator>
   );
 };
