@@ -13,8 +13,6 @@ import EventCheckInScreen from './screens/EventCheckInScreen';
 import LeaderboardScreen from './screens/LeaderboardScreen';
 import ArtistDashboard from './screens/ArtistDashboard';
 
-<Stack.Screen name="ArtistDashboard" component={ArtistDashboard} />
-
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -44,6 +42,11 @@ const AppNavigator = () => {
         component={LeaderboardScreen}
         options={{ title: '🏆 Fan Leaderboard' }}
       />
+      <Stack.Screen
+  name="ArtistDashboard"
+  component={ArtistDashboard}
+  options={{ title: '🎤 Artist Dashboard' }}
+/>
     </Stack.Navigator>
   );
 };
