@@ -1,20 +1,28 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import AppNavigator from './AppNavigator';
+
+const linking = {
+  prefixes: ['superfanverified://'],
+  config: {
+    screens: {
+      Home: 'home',
+      Staking: 'staking',
+      Governance: 'governance',
+      QRScanner: 'qrscanner',
+      Users: 'users',
+      Scans: 'scans',
+      VotingHistory: 'voting-history',
+      EventCheckIn: 'event-checkin',
+      LeaderboardScreen: 'leaderboard',
+    },
+  },
+};
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer linking={linking}>
+      <AppNavigator />
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
