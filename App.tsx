@@ -1,6 +1,7 @@
 import 'react-native-get-random-values';
 import 'react-native-url-polyfill/auto';
 import React, { useEffect } from 'react';
+import { Button, View } from 'react-native';
 import { enableScreens } from 'react-native-screens';
 import * as SQLite from 'expo-sqlite';
 import * as Sentry from 'sentry-expo';
@@ -38,10 +39,6 @@ export default function App() {
       error => {
         console.error("SQLite transaction error:", error);
         Sentry.Native.captureException(error);
-      },
-      () => {
-        // ✅ Read data after insert
-        fetchUsers();
       }
     );
   }, []);
@@ -63,24 +60,12 @@ export default function App() {
     });
   };
 
-  // 🧹 Optional: Clear all users (for testing)
-  const clearUsers = () => {
-    db.transaction(tx => {
-      tx.executeSql(
-        'DELETE FROM users;',
-        [],
-        () => console.log('All users deleted'),
-        (_, error) => {
-          console.error('Delete error:', error);
-          Sentry.Native.captureException(error);
-        }
-      );
-    });
-  };
-
   return (
     <WalletProvider>
-      <AppNavigator />
+      <View style={{ flex: 1 }}>
+        <AppNavigator />
+        <Button title="Show Users in Console" onPress={fetchUsers} />
+      </View>
     </WalletProvider>
   );
 }
