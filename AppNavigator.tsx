@@ -7,14 +7,8 @@ import QRScannerScreen from './screens/QRScannerScreen';
 import UsersScreen from './screens/UsersScreen';
 import ScansScreen from './screens/ScansScreen';
 import VotingHistoryScreen from './screens/VotingHistoryScreen';
-
-<Stack.Screen name="VotingHistory" component={VotingHistoryScreen} />
 import EventCheckInScreen from './screens/EventCheckInScreen';
-
-<Stack.Screen name="EventCheckIn" component={EventCheckInScreen} />
 import LeaderboardScreen from './screens/LeaderboardScreen';
-
-<Stack.Screen name="LeaderboardScreen" component={LeaderboardScreen} /> // ✅ Added this
 
 const Stack = createStackNavigator();
 
@@ -33,7 +27,10 @@ const AppNavigator = () => {
       <Stack.Screen name="Governance" component={GovernanceScreen} />
       <Stack.Screen name="QRScanner" component={QRScannerScreen} />
       <Stack.Screen name="Users" component={UsersScreen} />
-      <Stack.Screen name="Scans" component={ScansScreen} /> {/* ✅ New screen */}
+      <Stack.Screen name="Scans" component={ScansScreen} />
+      <Stack.Screen name="VotingHistory" component={VotingHistoryScreen} /> {/* ✅ Added */}
+      <Stack.Screen name="EventCheckIn" component={EventCheckInScreen} /> {/* ✅ Added */}
+      <Stack.Screen name="LeaderboardScreen" component={LeaderboardScreen} /> {/* ✅ Added */}
     </Stack.Navigator>
   );
 };
