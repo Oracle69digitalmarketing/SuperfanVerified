@@ -6,7 +6,7 @@ Superfan Verified is a decentralized mobile-first application (dApp) that empowe
 
 ---
 
-🚨 The Problem
+## 🚨 The Problem
 Fan engagement today is fragmented and centralized. Loyalty is measured through off-chain metrics like streaming counts and social media activity — data that’s:
 
 Controlled by platforms
@@ -21,7 +21,7 @@ This limits artists and brands from building trustless, exclusive fan experience
 
 ---
 
-✅ The Solution
+## ✅ The Solution
 Superfan Verified introduces a seamless, mobile-first flow that turns fandom into cryptographic proof:
 
 1. Wallet Creation
@@ -44,7 +44,7 @@ The proof is recorded on-chain, creating a verifiable, permissionless, and priva
 
 ---
 
-🧰 Tech Stack
+## 🧰 Tech Stack
 
 Technology	Purpose
 
@@ -57,7 +57,7 @@ Spotify Web API	OAuth 2.0 integration and streaming data access
 
 ---
 
-🚀 Getting Started
+## 🚀 Getting Started
 
 1. Clone the repo  
 git clone https://github.com/Oracle69digitalmarketing/SuperfanVerified.git  
@@ -82,8 +82,8 @@ Scan the QR code with Expo Go to launch the app on your device.
 
 ---
 
-🎥 Demo
-[Insert your demo video link here]
+### 🎥 Demo
+[demo video link here]
 
 
 ---
