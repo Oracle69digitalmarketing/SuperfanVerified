@@ -27,7 +27,9 @@ const linking = {
       EventCheckIn: {
         path: 'event-checkin',
         parse: {
-          event_id: id => `${id}`, // ✅ Supports ?event_id=E001
+          event_id: id => `${id}`,
+          user_id: uid => `${uid}`,
+          referrer: r => `${r}`,
         },
       },
       VotingHistory: 'voting-history',
