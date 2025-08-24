@@ -11,6 +11,9 @@ import ScansScreen from './screens/ScansScreen';
 import VotingHistoryScreen from './screens/VotingHistoryScreen';
 import EventCheckInScreen from './screens/EventCheckInScreen';
 import LeaderboardScreen from './screens/LeaderboardScreen';
+import ArtistDashboard from './screens/ArtistDashboard';
+
+<Stack.Screen name="ArtistDashboard" component={ArtistDashboard} />
 
 const Stack = createStackNavigator();
 
