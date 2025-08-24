@@ -6,15 +6,15 @@ import { enableScreens } from 'react-native-screens';
 import * as SQLite from 'expo-sqlite';
 import * as Sentry from 'sentry-expo';
 import Constants from 'expo-constants';
-import * as Linking from 'expo-linking'; // ✅ Added for deep linking
-import { NavigationContainer } from '@react-navigation/native'; // ✅ Added for linking
+import * as Linking from 'expo-linking';
+import { NavigationContainer } from '@react-navigation/native';
 
 import WalletProvider from './WalletProvider';
 import AppNavigator from './AppNavigator';
 
 enableScreens(); // Improves performance for navigation
 
-// ✅ Linking configuration
+// ✅ Corrected Linking configuration
 const linking = {
   prefixes: ['superfanverified://'],
   config: {
@@ -87,7 +87,7 @@ export default function App() {
 
   return (
     <WalletProvider>
-      <NavigationContainer linking={linking}> {/* ✅ Wrap with linking */}
+      <NavigationContainer linking={linking}>
         <View style={{ flex: 1 }}>
           <AppNavigator />
           <Button title="Show Users in Console" onPress={fetchUsers} />
@@ -95,4 +95,4 @@ export default function App() {
       </NavigationContainer>
     </WalletProvider>
   );
-}}
+}
