@@ -34,6 +34,14 @@ const HomeScreen = () => {
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('LeaderboardScreen')}>
         <Text style={styles.buttonText}>🏆 Fan Leaderboard</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('VotingHistory')}>
+  <Text style={styles.buttonText}>🗂️ View Voting History</Text>
+</TouchableOpacity>
+      
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('EventCheckIn')}>
+  <Text style={styles.buttonText}>🎟️ Event Check-In Tracker</Text>
+</TouchableOpacity>
     </View>
   );
 };
