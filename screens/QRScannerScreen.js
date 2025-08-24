@@ -10,6 +10,11 @@ const QRScannerScreen = () => {
   const [scannedData, setScannedData] = useState(null);
   const [permission, requestPermission] = useCameraPermissions();
   const navigation = useNavigation();
+  // If you want to extract and pass parameters from scanned deep links
+const url = new URL(data);
+const screen = url.pathname.replace('/', '');
+const params = Object.fromEntries(url.searchParams.entries());
+navigation.navigate(screen, params);
 
   useEffect(() => {
     db.transaction(tx => {
