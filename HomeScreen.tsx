@@ -20,6 +20,11 @@ const HomeScreen = () => {
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('QRScanner')}>
         <Text style={styles.buttonText}>📷 Scan QR</Text>
       </TouchableOpacity>
+
+      {/* ✅ New Button to View Users */}
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Users')}>
+        <Text style={styles.buttonText}>👥 View Local Users</Text>
+      </TouchableOpacity>
     </View>
   );
 };
