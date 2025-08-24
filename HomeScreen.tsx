@@ -21,9 +21,13 @@ const HomeScreen = () => {
         <Text style={styles.buttonText}>📷 Scan QR</Text>
       </TouchableOpacity>
 
-      {/* ✅ New Button to View Users */}
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Users')}>
         <Text style={styles.buttonText}>👥 View Local Users</Text>
+      </TouchableOpacity>
+
+      {/* ✅ New Button to View Scanned QR Codes */}
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Scans')}>
+        <Text style={styles.buttonText}>📋 View Scanned QR Codes</Text>
       </TouchableOpacity>
     </View>
   );
