@@ -6,11 +6,30 @@ import { enableScreens } from 'react-native-screens';
 import * as SQLite from 'expo-sqlite';
 import * as Sentry from 'sentry-expo';
 import Constants from 'expo-constants';
+import * as Linking from 'expo-linking'; // ✅ Added for deep linking
+import { NavigationContainer } from '@react-navigation/native'; // ✅ Added for linking
 
 import WalletProvider from './WalletProvider';
 import AppNavigator from './AppNavigator';
 
 enableScreens(); // Improves performance for navigation
+
+// ✅ Linking configuration
+const linking = {
+  prefixes: ['superfanverified://'],
+  config: {
+    screens: {
+      Home: 'home',
+      QRScanner: 'scan',
+      Users: 'users',
+      Scans: 'scans',
+      LeaderboardScreen: 'leaderboard',
+      EventCheckIn: 'event-checkin',
+      VotingHistory: 'voting-history',
+      // Add more screens as needed
+    },
+  },
+};
 
 // Initialize Sentry only if DSN is available
 const sentryDsn = Constants.expoConfig?.extra?.sentryDsn;
@@ -43,14 +62,13 @@ export default function App() {
     );
   }, []);
 
-  // 🔍 Read users from DB
   const fetchUsers = () => {
     db.transaction(tx => {
       tx.executeSql(
         'SELECT * FROM users;',
         [],
         (_, { rows }) => {
-          console.log('Users:', rows._array); // You can display this in UI later
+          console.log('Users:', rows._array);
         },
         (_, error) => {
           console.error('Select error:', error);
@@ -62,10 +80,12 @@ export default function App() {
 
   return (
     <WalletProvider>
-      <View style={{ flex: 1 }}>
-        <AppNavigator />
-        <Button title="Show Users in Console" onPress={fetchUsers} />
-      </View>
+      <NavigationContainer linking={linking}> {/* ✅ Wrap with linking */}
+        <View style={{ flex: 1 }}>
+          <AppNavigator />
+          <Button title="Show Users in Console" onPress={fetchUsers} />
+        </View>
+      </NavigationContainer>
     </WalletProvider>
   );
-}
+}}
