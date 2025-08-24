@@ -24,7 +24,12 @@ const linking = {
       Users: 'users',
       Scans: 'scans',
       LeaderboardScreen: 'leaderboard',
-      EventCheckIn: 'event-checkin',
+      EventCheckIn: {
+        path: 'event-checkin',
+        parse: {
+          event_id: id => `${id}`, // ✅ Supports ?event_id=E001
+        },
+      },
       VotingHistory: 'voting-history',
       // Add more screens as needed
     },
