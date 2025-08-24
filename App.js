@@ -13,8 +13,13 @@ const linking = {
       Users: 'users',
       Scans: 'scans',
       VotingHistory: 'voting-history',
-      EventCheckIn: 'event-checkin',
       LeaderboardScreen: 'leaderboard',
+      EventCheckIn: {
+        path: 'event-checkin',
+        parse: {
+          event_id: id => `${id}`, // ✅ Enables ?event_id=E001
+        },
+      },
     },
   },
 };
