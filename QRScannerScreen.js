@@ -1,14 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Button, Linking, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as SQLite from 'expo-sqlite';
+
+const db = SQLite.openDatabase('my-database.db');
 
 const QRScannerScreen = () => {
   const [scannedData, setScannedData] = useState(null);
   const [permission, requestPermission] = useCameraPermissions();
 
+  // Create scans table on mount
+  useEffect(() => {
+    db.transaction(tx => {
+      tx.executeSql(
+        `CREATE TABLE IF NOT EXISTS scans (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          raw_data TEXT,
+          scanned_at TEXT
+        );`
+      );
+    });
+  }, []);
+
   // Handle scanned data
   const handleBarCodeScanned = ({ type, data }) => {
-    // You can add a vibration or a sound here to signal a successful scan
     Alert.alert(`QR Code Scanned!`, `Type: ${type}\nData: ${data}`);
     setScannedData(data);
 
@@ -16,16 +31,25 @@ const QRScannerScreen = () => {
     if (data.startsWith('http')) {
       Linking.openURL(data);
     }
+
+    // Save to SQLite
+    db.transaction(tx => {
+      tx.executeSql(
+        'INSERT INTO scans (raw_data, scanned_at) VALUES (?, datetime("now"));',
+        [data],
+        (_, result) => {
+          console.log('Scan saved to DB:', data);
+        },
+        (_, error) => {
+          console.error('Scan insert error:', error);
+        }
+      );
+    });
   };
 
   // UI for camera permission status
-  if (!permission) {
-    // Camera permissions are still loading
-    return <View />;
-  }
-
+  if (!permission) return <View />;
   if (!permission.granted) {
-    // Camera permissions are not granted yet
     return (
       <View style={styles.container}>
         <Text style={styles.text}>We need your permission to access the camera</Text>
@@ -39,11 +63,8 @@ const QRScannerScreen = () => {
     <View style={styles.container}>
       <CameraView
         style={styles.camera}
-        // This is the core scanning logic
-        barcodeScannerSettings={{
-          barcodeTypes: ['qr'], // Specify that you only want to scan QR codes [1, 3]
-        }}
-        onBarcodeScanned={scannedData? undefined : handleBarCodeScanned}
+        barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+        onBarcodeScanned={scannedData ? undefined : handleBarCodeScanned}
       />
       {scannedData && (
         <View style={styles.overlay}>
@@ -69,6 +90,22 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
+  overlay: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    padding: 20,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    alignItems: 'center',
+  },
+  overlayText: {
+    color: '#fff',
+    fontSize: 16,
+    marginBottom: 10,
+  },
+});
+
+export default QRScannerScreen;  },
   overlay: {
     position: 'absolute',
     bottom: 0,
