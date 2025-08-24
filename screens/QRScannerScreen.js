@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Button, Linking, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { useNavigation } from '@react-navigation/native';
 import * as SQLite from 'expo-sqlite';
 
 const db = SQLite.openDatabase('my-database.db');
@@ -8,8 +9,8 @@ const db = SQLite.openDatabase('my-database.db');
 const QRScannerScreen = () => {
   const [scannedData, setScannedData] = useState(null);
   const [permission, requestPermission] = useCameraPermissions();
+  const navigation = useNavigation();
 
-  // Create scans table on mount
   useEffect(() => {
     db.transaction(tx => {
       tx.executeSql(
@@ -22,15 +23,9 @@ const QRScannerScreen = () => {
     });
   }, []);
 
-  // Handle scanned data
   const handleBarCodeScanned = ({ type, data }) => {
     Alert.alert(`QR Code Scanned!`, `Type: ${type}\nData: ${data}`);
     setScannedData(data);
-
-    // Optional: Try to open the scanned data as a URL
-    if (data.startsWith('http')) {
-      Linking.openURL(data);
-    }
 
     // Save to SQLite
     db.transaction(tx => {
@@ -45,9 +40,21 @@ const QRScannerScreen = () => {
         }
       );
     });
+
+    // Handle deep link navigation
+    try {
+      const url = new URL(data);
+      const screen = url.pathname.replace('/', '');
+      navigation.navigate(screen);
+    } catch (error) {
+      if (data.startsWith('http')) {
+        Linking.openURL(data);
+      } else {
+        console.warn('Not a valid deep link or URL:', data);
+      }
+    }
   };
 
-  // UI for camera permission status
   if (!permission) return <View />;
   if (!permission.granted) {
     return (
@@ -58,7 +65,6 @@ const QRScannerScreen = () => {
     );
   }
 
-  // The main scanner UI
   return (
     <View style={styles.container}>
       <CameraView
@@ -90,22 +96,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
-  overlay: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    padding: 20,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    alignItems: 'center',
-  },
-  overlayText: {
-    color: '#fff',
-    fontSize: 16,
-    marginBottom: 10,
-  },
-});
-
-export default QRScannerScreen;  },
   overlay: {
     position: 'absolute',
     bottom: 0,
