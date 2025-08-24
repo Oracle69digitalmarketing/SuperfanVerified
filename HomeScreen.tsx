@@ -25,11 +25,12 @@ const HomeScreen = () => {
         <Text style={styles.buttonText}>👥 View Local Users</Text>
       </TouchableOpacity>
 
+      {/* ✅ New Button to View Scanned QR Codes */}
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Scans')}>
         <Text style={styles.buttonText}>📋 View Scanned QR Codes</Text>
       </TouchableOpacity>
 
-      {/* ✅ Fan Leaderboard Button */}
+      {/* ✅ New Button to View Fan Leaderboard */}
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('LeaderboardScreen')}>
         <Text style={styles.buttonText}>🏆 Fan Leaderboard</Text>
       </TouchableOpacity>
