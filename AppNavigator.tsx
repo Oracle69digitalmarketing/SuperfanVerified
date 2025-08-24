@@ -5,7 +5,10 @@ import StakingScreen from './screens/StakingScreen';
 import GovernanceScreen from './screens/GovernanceScreen';
 import QRScannerScreen from './screens/QRScannerScreen';
 import UsersScreen from './screens/UsersScreen';
-import ScansScreen from './screens/ScansScreen'; // ✅ Added this
+import ScansScreen from './screens/ScansScreen';
+import LeaderboardScreen from './screens/LeaderboardScreen';
+
+<Stack.Screen name="LeaderboardScreen" component={LeaderboardScreen} /> // ✅ Added this
 
 const Stack = createStackNavigator();
 
