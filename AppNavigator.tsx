@@ -6,6 +6,9 @@ import GovernanceScreen from './screens/GovernanceScreen';
 import QRScannerScreen from './screens/QRScannerScreen';
 import UsersScreen from './screens/UsersScreen';
 import ScansScreen from './screens/ScansScreen';
+import EventCheckInScreen from './screens/EventCheckInScreen';
+
+<Stack.Screen name="EventCheckIn" component={EventCheckInScreen} />
 import LeaderboardScreen from './screens/LeaderboardScreen';
 
 <Stack.Screen name="LeaderboardScreen" component={LeaderboardScreen} /> // ✅ Added this
