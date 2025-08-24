@@ -38,11 +38,45 @@ export default function App() {
       error => {
         console.error("SQLite transaction error:", error);
         Sentry.Native.captureException(error);
+      },
+      () => {
+        // ✅ Read data after insert
+        fetchUsers();
       }
     );
-
-    // Optional: cleanup logic if needed
   }, []);
+
+  // 🔍 Read users from DB
+  const fetchUsers = () => {
+    db.transaction(tx => {
+      tx.executeSql(
+        'SELECT * FROM users;',
+        [],
+        (_, { rows }) => {
+          console.log('Users:', rows._array); // You can display this in UI later
+        },
+        (_, error) => {
+          console.error('Select error:', error);
+          Sentry.Native.captureException(error);
+        }
+      );
+    });
+  };
+
+  // 🧹 Optional: Clear all users (for testing)
+  const clearUsers = () => {
+    db.transaction(tx => {
+      tx.executeSql(
+        'DELETE FROM users;',
+        [],
+        () => console.log('All users deleted'),
+        (_, error) => {
+          console.error('Delete error:', error);
+          Sentry.Native.captureException(error);
+        }
+      );
+    });
+  };
 
   return (
     <WalletProvider>
