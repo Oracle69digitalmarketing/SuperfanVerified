@@ -1,7 +1,7 @@
 {
   "name": "superfan-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Superfan backend API",
   "main": "app.js",
   "scripts": {
     "setup": "bash setup-backend.sh",
@@ -9,7 +9,7 @@
     "dev": "nodemon app.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "*",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",

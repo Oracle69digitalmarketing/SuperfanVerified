@@ -1,34 +1,41 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const pool = require('./utils/db');
 
+// Import routes
 const userRoutes = require('./routes/userRoutes');
 const leaderboardRoutes = require('./routes/leaderboardRoutes');
 const scanRoutes = require('./routes/scanRoutes');
 
 const app = express();
 
-const allowed = (process.env.CORS_ORIGINS || '')
-  .split(',')
-  .map(s => s.trim())
-  .filter(Boolean);
+// CORS setup
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
+  : '*';
 
-app.use(cors({
-  origin: allowed.length ? allowed : true,
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: allowedOrigins.length ? allowedOrigins : true,
+  })
+);
 
+// JSON parsing
 app.use(express.json());
 
-app.get('/api/health', (_req, res) => {
+// Health check
+app.get('/health', (req, res) => {
   res.json({ ok: true, ts: new Date().toISOString() });
 });
 
-app.use('/api', userRoutes);
-app.use('/api', leaderboardRoutes);
-app.use('/api', scanRoutes);
+// API routes
+app.use('/users', userRoutes);
+app.use('/leaderboard', leaderboardRoutes);
+app.use('/scan', scanRoutes);
 
+// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`✅ Superfan backend running on port ${PORT}`);
+  console.log(`Superfan backend running on port ${PORT}`);
 });
