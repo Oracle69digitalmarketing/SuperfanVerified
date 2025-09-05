@@ -1,22 +1,33 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+
 const userRoutes = require('./routes/userRoutes');
+const leaderboardRoutes = require('./routes/leaderboardRoutes');
+const scanRoutes = require('./routes/scanRoutes');
 
 const app = express();
 
-// middleware
-app.use(cors());
+const allowed = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin: allowed.length ? allowed : true,
+  credentials: true
+}));
+
 app.use(express.json());
 
-// healthcheck
-app.get('/', (req, res) => {
-  res.json({ status: 'Superfan backend is running 🚀' });
+app.get('/api/health', (_req, res) => {
+  res.json({ ok: true, ts: new Date().toISOString() });
 });
 
-// routes
 app.use('/api', userRoutes);
+app.use('/api', leaderboardRoutes);
+app.use('/api', scanRoutes);
 
-// dynamic port for deployment
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Superfan backend running on port ${PORT}`);

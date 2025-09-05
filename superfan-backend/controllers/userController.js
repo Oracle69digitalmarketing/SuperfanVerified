@@ -1,13 +1,32 @@
-const { createUser } = require('../models/User');
+const pool = require('../db');
 
-const signup = async (req, res) => {
-  const { username, email, referralCode } = req.body;
+exports.createUser = async (req, res) => {
   try {
-    const user = await createUser(username, email, referralCode);
-    res.status(201).json(user);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const { walletAddress, name } = req.body;
+    if (!walletAddress) return res.status(400).json({ error: 'walletAddress required' });
+
+    const q = `
+      INSERT INTO users (wallet_address, name)
+      VALUES ($1, $2)
+      ON CONFLICT (wallet_address) DO UPDATE SET name = COALESCE(EXCLUDED.name, users.name)
+      RETURNING id, wallet_address, name, created_at;
+    `;
+    const { rows } = await pool.query(q, [walletAddress, name || null]);
+    res.json(rows[0]);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'createUser failed' });
   }
 };
 
-module.exports = { signup };
+exports.listUsers = async (_req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, wallet_address, name, created_at FROM users ORDER BY created_at DESC LIMIT 200;`
+    );
+    res.json(rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'listUsers failed' });
+  }
+};

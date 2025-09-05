@@ -20,6 +20,7 @@
     "@react-navigation/stack": "^7.4.8",
     "@sentry/react-native": "~6.14.0",
     "@walletconnect/react-native-compat": "^2.21.8",
+    "babel-preset-expo": "^13.2.4",
     "buffer": "^6.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
@@ -42,7 +43,7 @@
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "~4.11.1",
     "react-native-url-polyfill": "^2.0.0",
-    "sentry-expo": "7.1.1"
+    "sentry-expo": "^1.13.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

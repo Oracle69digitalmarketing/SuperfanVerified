@@ -13,7 +13,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     backgroundColor: '#ffffff',
   },
   updates: {
-    fallbackToCacheTimeout: 0,
+    url: 'https://u.expo.dev/8203d4d6-e559-4279-9ddc-4403c4243c9f',
+    runtimeVersion: '1',
+    policy: 'appVersion',
   },
   assetBundlePatterns: ['**/*'],
   ios: {
