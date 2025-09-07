@@ -1,14 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import * as SQLite from 'expo-sqlite';
+import { WalletContext } from '../providers/WalletProvider'; // Adjust path if needed
 
 const db = SQLite.openDatabase('my-database.db');
 
 const EventCheckInScreen = () => {
   const [checkIns, setCheckIns] = useState([]);
   const route = useRoute();
-  const { event_id, user_id, referrer } = route.params || {}; // ✅ Deep link params
+  const wallet = useContext(WalletContext);
+
+  const { event_id, user_id: routeUserId, referrer } = route.params || {};
+  const user_id = routeUserId || wallet?.accounts?.[0] || 'Unknown';
 
   useEffect(() => {
     db.transaction(tx => {
@@ -30,12 +34,8 @@ const EventCheckInScreen = () => {
       tx.executeSql(
         query,
         params,
-        (_, { rows }) => {
-          setCheckIns(rows._array);
-        },
-        (_, error) => {
-          console.error('Check-in fetch error:', error);
-        }
+        (_, { rows }) => setCheckIns(rows._array),
+        (_, error) => console.error('Check-in fetch error:', error)
       );
     });
   }, [event_id]);
