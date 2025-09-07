@@ -1,19 +1,31 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { WalletContext } from '../providers/WalletProvider'; // Adjust path as needed
 
 const HomeScreen = () => {
   const navigation = useNavigation();
+  const wallet = useContext(WalletContext);
+  const walletAddress = wallet?.accounts?.[0];
+
+  const requireWallet = (screen: string) => {
+    if (!wallet?.connected) {
+      alert('Please connect your wallet to access this feature.');
+    } else {
+      navigation.navigate(screen);
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome, Prince 👑</Text>
+      {walletAddress && <Text style={styles.wallet}>Connected Wallet: {walletAddress}</Text>}
 
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Staking')}>
+      <TouchableOpacity style={styles.button} onPress={() => requireWallet('Staking')}>
         <Text style={styles.buttonText}>🪙 Stake Now</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Governance')}>
+      <TouchableOpacity style={styles.button} onPress={() => requireWallet('Governance')}>
         <Text style={styles.buttonText}>🗳️ Vote on Proposals</Text>
       </TouchableOpacity>
 
@@ -25,23 +37,21 @@ const HomeScreen = () => {
         <Text style={styles.buttonText}>👥 View Local Users</Text>
       </TouchableOpacity>
 
-      {/* ✅ New Button to View Scanned QR Codes */}
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Scans')}>
         <Text style={styles.buttonText}>📋 View Scanned QR Codes</Text>
       </TouchableOpacity>
 
-      {/* ✅ New Button to View Fan Leaderboard */}
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('LeaderboardScreen')}>
         <Text style={styles.buttonText}>🏆 Fan Leaderboard</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('VotingHistory')}>
-  <Text style={styles.buttonText}>🗂️ View Voting History</Text>
-</TouchableOpacity>
-      
+        <Text style={styles.buttonText}>🗂️ View Voting History</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('EventCheckIn')}>
-  <Text style={styles.buttonText}>🎟️ Event Check-In Tracker</Text>
-</TouchableOpacity>
+        <Text style={styles.buttonText}>🎟️ Event Check-In Tracker</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -57,8 +67,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     color: '#facc15',
-    marginBottom: 40,
+    marginBottom: 20,
     fontWeight: 'bold',
+  },
+  wallet: {
+    fontSize: 14,
+    color: '#94a3b8',
+    marginBottom: 30,
   },
   button: {
     backgroundColor: '#1e293b',
