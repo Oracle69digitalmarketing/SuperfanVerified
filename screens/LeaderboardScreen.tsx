@@ -1,23 +1,32 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import * as SQLite from 'expo-sqlite';
+import { WalletContext } from '../providers/WalletProvider'; // Adjust path as needed
 
 const db = SQLite.openDatabase('my-database.db');
 
 const LeaderboardScreen = () => {
   const [leaderboard, setLeaderboard] = useState([]);
+  const wallet = useContext(WalletContext);
+  const walletAddress = wallet?.accounts?.[0];
 
   useEffect(() => {
     db.transaction(tx => {
       tx.executeSql(
-        `
-        CREATE TABLE IF NOT EXISTS votes (
+        `CREATE TABLE IF NOT EXISTS votes (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           user_id INTEGER,
           proposal_id TEXT,
           voted_at TEXT
-        );
-        `
+        );`
+      );
+
+      tx.executeSql(
+        `CREATE TABLE IF NOT EXISTS scans (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          raw_data TEXT,
+          scanned_at TEXT
+        );`
       );
 
       tx.executeSql(
@@ -38,7 +47,7 @@ const LeaderboardScreen = () => {
         (_, { rows }) => {
           const data = rows._array.map(user => ({
             ...user,
-            points: user.scanCount + 5 + (user.voteCount * 2), // +5 for wallet connection
+            points: user.scanCount + 5 + (user.voteCount * 2),
           })).sort((a, b) => b.points - a.points);
 
           setLeaderboard(data);
@@ -50,22 +59,26 @@ const LeaderboardScreen = () => {
     });
   }, []);
 
-  const renderItem = ({ item, index }) => (
-    <View style={styles.item}>
-      <Text style={styles.rank}>#{index + 1}</Text>
-      <View style={styles.details}>
-        <Text style={styles.name}>{item.wallet_address || 'Unnamed Fan'}</Text>
-        <Text style={styles.points}>Points: {item.points}</Text>
-        <Text style={styles.breakdown}>
-          Scans: {item.scanCount} | Votes: {item.voteCount} | Chain: {item.chain_id}
-        </Text>
+  const renderItem = ({ item, index }) => {
+    const isCurrentUser = item.wallet_address === walletAddress;
+    return (
+      <View style={[styles.item, isCurrentUser && styles.highlight]}>
+        <Text style={styles.rank}>#{index + 1}</Text>
+        <View style={styles.details}>
+          <Text style={styles.name}>{item.wallet_address || 'Unnamed Fan'}</Text>
+          <Text style={styles.points}>Points: {item.points}</Text>
+          <Text style={styles.breakdown}>
+            Scans: {item.scanCount} | Votes: {item.voteCount} | Chain: {item.chain_id}
+          </Text>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🏆 Fan Leaderboard</Text>
+      {walletAddress && <Text style={styles.meta}>Your Wallet: {walletAddress}</Text>}
       <FlatList
         data={leaderboard}
         keyExtractor={item => item.id.toString()}
@@ -85,6 +98,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#facc15',
+    marginBottom: 10,
+  },
+  meta: {
+    fontSize: 14,
+    color: '#94a3b8',
     marginBottom: 20,
   },
   item: {
@@ -93,6 +111,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#1e293b',
     padding: 15,
     borderRadius: 10,
+  },
+  highlight: {
+    borderColor: '#facc15',
+    borderWidth: 2,
   },
   rank: {
     fontSize: 18,
