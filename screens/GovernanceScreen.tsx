@@ -1,9 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { StargateClient } from '@cosmjs/stargate';
+import { WalletContext } from '../providers/WalletProvider'; // Adjust path as needed
+import * as SQLite from 'expo-sqlite';
+
+const db = SQLite.openDatabase('my-database.db');
 
 export default function GovernanceScreen() {
   const [proposals, setProposals] = useState([]);
+  const wallet = useContext(WalletContext);
+  const walletAddress = wallet?.accounts?.[0] || 'Not connected';
 
   useEffect(() => {
     const fetchProposals = async () => {
@@ -27,11 +33,31 @@ export default function GovernanceScreen() {
 
   const handleVote = (id: string) => {
     Alert.alert('Vote Submitted', `You voted YES on Proposal #${id}`);
+
+    db.transaction(tx => {
+      tx.executeSql(
+        `CREATE TABLE IF NOT EXISTS votes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          proposal_id TEXT,
+          voter_address TEXT,
+          vote TEXT,
+          timestamp TEXT
+        );`
+      );
+
+      tx.executeSql(
+        'INSERT INTO votes (proposal_id, voter_address, vote, timestamp) VALUES (?, ?, ?, datetime("now"));',
+        [id, walletAddress, 'YES'],
+        () => console.log(`Vote recorded for ${walletAddress}`),
+        (_, error) => console.error('Vote insert error:', error)
+      );
+    });
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🗳️ Governance Proposals</Text>
+      <Text style={styles.meta}>Connected Wallet: {walletAddress}</Text>
       <FlatList
         data={proposals}
         keyExtractor={(item) => item.id}
@@ -40,7 +66,7 @@ export default function GovernanceScreen() {
             <Text style={styles.proposalTitle}>{item.title}</Text>
             <Text style={styles.details}>Status: {item.status}</Text>
             <Text style={styles.details}>Voting Ends: {item.endDate}</Text>
-            {item.status === 'PROPOSAL_STATUS_VOTING_PERIOD' && (
+            {item.status === 'PROPOSAL_STATUS_VOTING_PERIOD' && wallet?.connected && (
               <TouchableOpacity style={styles.voteButton} onPress={() => handleVote(item.id)}>
                 <Text style={styles.voteText}>Vote YES</Text>
               </TouchableOpacity>
@@ -62,6 +88,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#facc15',
     fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  meta: {
+    fontSize: 14,
+    color: '#94a3b8',
     marginBottom: 20,
   },
   card: {
