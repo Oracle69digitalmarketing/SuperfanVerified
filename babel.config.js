@@ -1,5 +1,5 @@
 module.exports = function (api) {
-66  api.cache(true);
+  api.cache(true);
 
   return {
     presets: ['babel-preset-expo'],
