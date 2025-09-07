@@ -1,54 +1,91 @@
-import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import React, { useEffect } from 'react';
+import { View, Button, LogBox } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import * as SQLite from 'expo-sqlite';
+import * as Sentry from 'sentry-expo';
+import AppNavigator from './AppNavigator';
+import { WalletProvider } from './providers/WalletProvider'; // Adjust path if needed
 
-// Screens
-import HomeScreen from './screens/HomeScreen';
-import StakingScreen from './screens/StakingScreen';
-import GovernanceScreen from './screens/GovernanceScreen';
-import QRScannerScreen from './screens/QRScannerScreen';
-import UsersScreen from './screens/UsersScreen';
-import ScansScreen from './screens/ScansScreen';
-import VotingHistoryScreen from './screens/VotingHistoryScreen';
-import EventCheckInScreen from './screens/EventCheckInScreen';
-import LeaderboardScreen from './screens/LeaderboardScreen';
-import ArtistDashboard from './screens/ArtistDashboard';
+const db = SQLite.openDatabase('fanbase.db');
 
-const Stack = createStackNavigator();
-
-const AppNavigator = () => {
-  return (
-    <Stack.Navigator
-      initialRouteName="Home"
-      screenOptions={{
-        headerStyle: { backgroundColor: '#0f172a' },
-        headerTintColor: '#facc15',
-        headerTitleStyle: { fontWeight: 'bold' },
-      }}
-    >
-      <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="Staking" component={StakingScreen} />
-      <Stack.Screen name="Governance" component={GovernanceScreen} />
-      <Stack.Screen name="QRScanner" component={QRScannerScreen} />
-      <Stack.Screen name="Users" component={UsersScreen} />
-      <Stack.Screen name="Scans" component={ScansScreen} />
-      <Stack.Screen name="VotingHistory" component={VotingHistoryScreen} />
-      <Stack.Screen
-        name="EventCheckIn"
-        component={EventCheckInScreen}
-        options={{ title: '🎟️ Event Check-In' }}
-      />
-      <Stack.Screen
-        name="LeaderboardScreen"
-        component={LeaderboardScreen}
-        options={{ title: '🏆 Fan Leaderboard' }}
-      />
-      <Stack.Screen
-  name="ArtistDashboard"
-  component={ArtistDashboard}
-  options={{ title: '🎤 Artist Dashboard' }}
-/>
-    </Stack.Navigator>
-  );
+// 🔧 Deep linking config
+const linking = {
+  prefixes: ['superfanverified://'],
+  config: {
+    screens: {
+      Home: 'home',
+      Staking: 'staking',
+      Governance: 'governance',
+      QRScanner: 'qrscanner',
+      Users: 'users',
+      Scans: 'scans',
+      VotingHistory: 'voting-history',
+      LeaderboardScreen: 'leaderboard',
+      EventCheckIn: {
+        path: 'event-checkin',
+        parse: { event_id: (id: string) => `${id}` },
+      },
+    },
+  },
 };
 
-export default AppNavigator;
+// 🧱 Setup local SQLite tables
+const setupDatabase = () => {
+  db.transaction(tx => {
+    tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        referral_code TEXT UNIQUE,
+        referred_by TEXT,
+        points INTEGER DEFAULT 0,
+        rank INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );`,
+      [],
+      () => console.log('✅ users table ready'),
+      (_, error) => {
+        console.error('❌ users table error:', error);
+        Sentry.Native.captureException(error);
+        return false;
+      }
+    );
+  });
+};
+
+// 🧪 Debug utility
+const fetchUsers = () => {
+  db.transaction(tx => {
+    tx.executeSql(
+      'SELECT * FROM users;',
+      [],
+      (_, { rows }) => {
+        console.log('Users:', rows._array);
+      },
+      (_, error) => {
+        console.error('Select error:', error);
+        Sentry.Native.captureException(error);
+        return false;
+      }
+    );
+  });
+};
+
+export default function App(): JSX.Element {
+  useEffect(() => {
+    setupDatabase();
+    LogBox.ignoreLogs(['Non-serializable values were found in the navigation state']);
+  }, []);
+
+  return (
+    <WalletProvider>
+      <NavigationContainer linking={linking}>
+        <View style={{ flex: 1 }}>
+          <AppNavigator />
+          <Button title="Show Users in Console" onPress={fetchUsers} />
+        </View>
+      </NavigationContainer>
+    </WalletProvider>
+  );
+}
