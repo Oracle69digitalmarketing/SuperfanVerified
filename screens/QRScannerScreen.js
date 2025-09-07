@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, Button, Linking, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
 import * as SQLite from 'expo-sqlite';
+import { WalletContext } from '../providers/WalletProvider'; // Adjust path if needed
 
 const db = SQLite.openDatabase('my-database.db');
 
@@ -10,25 +11,8 @@ const QRScannerScreen = () => {
   const [scannedData, setScannedData] = useState(null);
   const [permission, requestPermission] = useCameraPermissions();
   const navigation = useNavigation();
-  // If you want to extract and pass parameters from scanned deep links
-const url = new URL(data);
-const screen = url.pathname.replace('/', '');
-const params = Object.fromEntries(url.searchParams.entries());
-navigation.navigate(screen, params);
-  const handleBarCodeScanned = ({ type, data }) => {
-  try {
-    const url = new URL(data);
-    const screen = url.pathname.replace('/', '');
-    const params = Object.fromEntries(url.searchParams.entries());
-    navigation.navigate(screen, params);
-  } catch (error) {
-    if (data.startsWith('http')) {
-      Linking.openURL(data);
-    } else {
-      Alert.alert('Invalid QR Code', 'Could not navigate from scanned data.');
-    }
-  }
-};
+  const wallet = useContext(WalletContext);
+  const walletAddress = wallet?.accounts?.[0] || 'Unknown';
 
   useEffect(() => {
     db.transaction(tx => {
@@ -36,7 +20,8 @@ navigation.navigate(screen, params);
         `CREATE TABLE IF NOT EXISTS scans (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           raw_data TEXT,
-          scanned_at TEXT
+          scanned_at TEXT,
+          scanned_by TEXT
         );`
       );
     });
@@ -49,14 +34,10 @@ navigation.navigate(screen, params);
     // Save to SQLite
     db.transaction(tx => {
       tx.executeSql(
-        'INSERT INTO scans (raw_data, scanned_at) VALUES (?, datetime("now"));',
-        [data],
-        (_, result) => {
-          console.log('Scan saved to DB:', data);
-        },
-        (_, error) => {
-          console.error('Scan insert error:', error);
-        }
+        'INSERT INTO scans (raw_data, scanned_at, scanned_by) VALUES (?, datetime("now"), ?);',
+        [data, walletAddress],
+        () => console.log('Scan saved to DB:', data),
+        (_, error) => console.error('Scan insert error:', error)
       );
     });
 
@@ -64,7 +45,8 @@ navigation.navigate(screen, params);
     try {
       const url = new URL(data);
       const screen = url.pathname.replace('/', '');
-      navigation.navigate(screen);
+      const params = Object.fromEntries(url.searchParams.entries());
+      navigation.navigate(screen, params);
     } catch (error) {
       if (data.startsWith('http')) {
         Linking.openURL(data);
