@@ -1,89 +1,82 @@
-import 'react-native-get-random-values';
-import 'react-native-url-polyfill/auto';
 import React, { useEffect } from 'react';
-import { Button, View } from 'react-native';
-import { enableScreens } from 'react-native-screens';
+import { View, Button, LogBox } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
 import * as SQLite from 'expo-sqlite';
 import * as Sentry from 'sentry-expo';
-import Constants from 'expo-constants';
-import * as Linking from 'expo-linking';
-import { NavigationContainer } from '@react-navigation/native';
-
-import WalletProvider from './WalletProvider';
 import AppNavigator from './AppNavigator';
+import { WalletProvider } from './providers/WalletProvider'; // Adjust path if needed
 
-enableScreens(); // Improves performance for navigation
+const db = SQLite.openDatabase('fanbase.db');
 
-// ✅ Corrected Linking configuration
+// 🔧 Deep linking config
 const linking = {
   prefixes: ['superfanverified://'],
   config: {
     screens: {
       Home: 'home',
-      QRScanner: 'scan',
+      Staking: 'staking',
+      Governance: 'governance',
+      QRScanner: 'qrscanner',
       Users: 'users',
       Scans: 'scans',
+      VotingHistory: 'voting-history',
       LeaderboardScreen: 'leaderboard',
       EventCheckIn: {
         path: 'event-checkin',
-        parse: {
-          event_id: id => `${id}`,
-          user_id: uid => `${uid}`,
-          referrer: r => `${r}`,
-        },
+        parse: { event_id: (id: string) => `${id}` },
       },
-      VotingHistory: 'voting-history',
-      // Add more screens as needed
     },
   },
 };
 
-// Initialize Sentry only if DSN is available
-const sentryDsn = Constants.expoConfig?.extra?.sentryDsn;
-if (sentryDsn) {
-  Sentry.init({
-    dsn: sentryDsn,
-    enableInExpoDevelopment: true,
-    debug: true,
-  });
-}
-
-const db = SQLite.openDatabase('my-database.db');
-
-export default function App() {
-  useEffect(() => {
-    db.transaction(
-      tx => {
-        tx.executeSql(
-          "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY NOT NULL, name TEXT, age INTEGER);"
-        );
-        tx.executeSql(
-          "INSERT INTO users (name, age) VALUES (?, ?);",
-          ['Alice', 25]
-        );
-      },
-      error => {
-        console.error("SQLite transaction error:", error);
+// 🧱 Setup local SQLite tables
+const setupDatabase = () => {
+  db.transaction(tx => {
+    tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        referral_code TEXT UNIQUE,
+        referred_by TEXT,
+        points INTEGER DEFAULT 0,
+        rank INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );`,
+      [],
+      () => console.log('✅ users table ready'),
+      (_, error) => {
+        console.error('❌ users table error:', error);
         Sentry.Native.captureException(error);
+        return false;
       }
     );
-  }, []);
+  });
+};
 
-  const fetchUsers = () => {
-    db.transaction(tx => {
-      tx.executeSql(
-        'SELECT * FROM users;',
-        [],
-        (_, { rows }) => {
-          console.log('Users:', rows._array);
-        },
-        (_, error) => {
-          console.error('Select error:', error);
-          Sentry.Native.captureException(error);
-        }
-      );
-    });
-  };
+// 🧪 Debug utility
+const fetchUsers = () => {
+  db.transaction(tx => {
+    tx.executeSql(
+      'SELECT * FROM users;',
+      [],
+      (_, { rows }) => {
+        console.log('Users:', rows._array);
+      },
+      (_, error) => {
+        console.error('Select error:', error);
+        Sentry.Native.captureException(error);
+        return false;
+      }
+    );
+  });
+};
+
+export default function App(): JSX.Element {
+  useEffect(() => {
+    setupDatabase();
+    LogBox.ignoreLogs(['Non-serializable values were found in the navigation state']);
+  }, []);
 
   return (
     <WalletProvider>
