@@ -1,40 +1,44 @@
-export default ({ config }) => ({
-  ...config,
+export default {
   name: "SuperfanVerified",
-  slug: "superfanverified", // remove the dash to match EAS project
+  slug: "superfanverified",  // MUST match Expo project slug
   version: "1.0.0",
   orientation: "portrait",
   icon: "./assets/icon.png",
+  userInterfaceStyle: "light",
   splash: {
     image: "./assets/splash.png",
     resizeMode: "contain",
-    backgroundColor: "#ffffff",
-  },
-  assetBundlePatterns: ["**/*"],
-  updates: {
-    fallbackToCacheTimeout: 0,
+    backgroundColor: "#ffffff"
   },
   ios: {
-    bundleIdentifier: "com.superfan.verified",
     supportsTablet: true,
+    bundleIdentifier: "com.oracle69digitalmarketing.superfanverified",
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false
+    }
   },
   android: {
-    package: "com.superfan.verified",
+    package: "com.superfanverified.app",
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#ffffff",
+      backgroundColor: "#ffffff"
     },
+    edgeToEdgeEnabled: true
   },
   web: {
-    favicon: "./assets/favicon.png",
+    favicon: "./assets/favicon.png"
   },
+  plugins: ["expo-sqlite"],
   extra: {
-    apiUrl: process.env.API_URL || "https://superfan-backend.onrender.com",
+    apiUrl: "https://superfan-backend.onrender.com",
+    rpcUrl: "https://rpc.testnet.xion.dev",
+    chainId: 42069,
+    owner: "oracle69",
     eas: {
-      projectId: "8203d4d6-e559-4279-9ddc-4403c4243c9f",
-    },
+      projectId: "8203d4d6-e559-4279-9ddc-4403c4243c9f"
+    }
   },
   cli: {
-    appVersionSource: "remote",
-  },
-});
+    appVersionSource: "remote"
+  }
+};
