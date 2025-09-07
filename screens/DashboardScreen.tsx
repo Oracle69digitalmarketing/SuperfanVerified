@@ -1,29 +1,14 @@
-/* 
-import React from 'react';
+import React, { useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
 import { Text, View } from 'react-native';
+import { WalletContext } from './providers/WalletProvider'; // Adjust path as needed
 
-// Dummy Wallet Screen
-function WalletScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Wallet Screen</Text>
-    </View>
-  );
-}
+// Real Screens
+import WalletScreen from './screens/WalletScreen'; // Replace with your actual wallet screen
+import DashboardScreen from './screens/DashboardScreen'; // Replace with your actual dashboard
 
-// Dummy Dashboard Screen
-function DashboardScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Dashboard Screen</Text>
-    </View>
-  );
-}
-
-// Linking configuration
 const linking = {
   prefixes: ['superfanverified://'],
   config: {
@@ -36,14 +21,15 @@ const linking = {
 
 const Stack = createNativeStackNavigator();
 
-export default function App() {
+export default function AppNavigator() {
+  const wallet = useContext(WalletContext);
+
   return (
     <NavigationContainer linking={linking}>
-      <Stack.Navigator initialRouteName=Dashboard>
-        <Stack.Screen name=Wallet component={WalletScreen} />
-        <Stack.Screen name=Dashboard component={DashboardScreen} />
+      <Stack.Navigator initialRouteName="Dashboard">
+        <Stack.Screen name="Wallet" component={WalletScreen} />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-*/
