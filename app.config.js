@@ -1,51 +1,40 @@
-import { ExpoConfig, ConfigContext } from "@expo/config";
-
-export default ({ config }: ConfigContext): ExpoConfig => ({
+export default ({ config }) => ({
   ...config,
   name: "SuperfanVerified",
-  slug: "superfan-verified",
+  slug: "superfanverified", // remove the dash to match EAS project
   version: "1.0.0",
   orientation: "portrait",
   icon: "./assets/icon.png",
   splash: {
-    image: "./assets/splash-icon.png",
+    image: "./assets/splash.png",
     resizeMode: "contain",
-    backgroundColor: "#ffffff"
-  },
-  updates: {
-    fallbackToCacheTimeout: 0
+    backgroundColor: "#ffffff",
   },
   assetBundlePatterns: ["**/*"],
+  updates: {
+    fallbackToCacheTimeout: 0,
+  },
   ios: {
+    bundleIdentifier: "com.superfan.verified",
     supportsTablet: true,
-    bundleIdentifier: "com.oracle69digitalmarketing.superfanverified"
   },
   android: {
-    package: "com.superfanverified.app",
+    package: "com.superfan.verified",
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#ffffff"
-    }
+      backgroundColor: "#ffffff",
+    },
   },
   web: {
-    favicon: "./assets/favicon.png"
+    favicon: "./assets/favicon.png",
   },
   extra: {
+    apiUrl: process.env.API_URL || "https://superfan-backend.onrender.com",
     eas: {
-      projectId: "8203d4d6-e559-4279-9ddc-4403c4243c9f"
+      projectId: "8203d4d6-e559-4279-9ddc-4403c4243c9f",
     },
-    RPC_URL: "https://rpc.testnet.xion.dev",
-    CHAIN_ID: 42069
   },
-  plugins: [
-    [
-      "sentry-expo",
-      {
-        dsn: "https://97d9eld6551dfd69929529dd6b4658c6@o4509865650421760.ingest.sentry.io/9884240822352",
-        enableInExpoDevelopment: true,
-        debug: false
-      }
-    ],
-    "expo-sqlite"
-  ]
+  cli: {
+    appVersionSource: "remote",
+  },
 });
