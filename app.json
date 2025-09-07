@@ -1,12 +1,11 @@
 {
   "expo": {
     "name": "SuperfanVerified",
-    "slug": "SuperfanVerified",
+    "slug": "superfan-verified",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -20,32 +19,27 @@
       }
     },
     "android": {
+      "package": "com.superfanverified.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "package": "com.superfanverified.app"
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      [
-        "sentry-expo",
-        {
-          "organization": "your-org",
-          "project": "superfanverified"
-        }
-      ]
+      "expo-sqlite"
     ],
-    "runtimeVersion": {
-      "policy": "appVersion"
+    "extra": {
+      "eas": {
+        "projectId": "8203d4d6-e559-4279-9ddc-4403c4243c9f"
+      },
+      "API_URL": "https://superfan-backend.onrender.com",
+      "RPC_URL": "https://rpc.testnet.xion.dev",
+      "CHAIN_ID": 42069
     },
-    "updates": {
-      "url": "https://u.expo.dev/8203d4d6-e559-4279-9ddc-4403c4243c9f",
-      "runtimeVersion": "1",
-      "policy": "appVersion"
-    }
+    "owner": "oracle69"
   }
 }

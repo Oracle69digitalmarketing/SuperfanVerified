@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import * as SQLite from 'expo-sqlite';
 import AppNavigator from './AppNavigator';
+import { fetchUsers } from './apiService';
 
 const db = SQLite.openDatabase('fanbase.db');
 
@@ -19,7 +20,6 @@ const setupDatabase = () => {
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       );
     `);
-
     tx.executeSql(`
       CREATE TABLE IF NOT EXISTS fan_activity (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,7 +29,6 @@ const setupDatabase = () => {
         timestamp TEXT DEFAULT CURRENT_TIMESTAMP
       );
     `);
-
     tx.executeSql(`
       CREATE TABLE IF NOT EXISTS referral_rewards (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,24 +54,24 @@ const linking = {
       Scans: 'scans',
       VotingHistory: 'voting-history',
       LeaderboardScreen: 'leaderboard',
-      EventCheckIn: {
-        path: 'event-checkin',
-        parse: {
-          event_id: id => `${id}`, // ✅ Enables ?event_id=E001
-        },
-      },
+      EventCheckIn: { path: 'event-checkin', parse: { event_id: id => `${id}` } },
     },
   },
 };
 
 export default function App() {
+  const [users, setUsers] = useState([]);
+
   useEffect(() => {
-    setupDatabase(); // ✅ Initialize tables on app launch
+    setupDatabase(); // Initialize tables
+
+    // Fetch from backend or local DB
+    fetchUsers().then(setUsers);
   }, []);
 
   return (
     <NavigationContainer linking={linking}>
-      <AppNavigator />
+      <AppNavigator users={users} />
     </NavigationContainer>
   );
 }
