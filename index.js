@@ -1,4 +1,4 @@
-6import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Text } from 'react-native';
 import { registerRootComponent } from 'expo';
 import * as SplashScreen from 'expo-splash-screen';
