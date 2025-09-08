@@ -1,4 +1,4 @@
--- Connect first:
+1-- Connect first:
 -- gcloud sql connect superfan-db --user=appuser
 
 -- 1️⃣ Users table
