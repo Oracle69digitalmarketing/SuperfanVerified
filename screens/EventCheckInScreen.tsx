@@ -1,20 +1,23 @@
-import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
+import { View, Text, FlatList, StyleSheet, Button } from 'react-native';
 import * as SQLite from 'expo-sqlite';
-import { WalletContext } from '../providers/WalletProvider'; // Adjust path if needed
+import dayjs from 'dayjs';
+import { useFocusEffect } from '@react-navigation/native';
+import { WalletContext } from '../context/WalletContext';
 
-const db = SQLite.openDatabase('my-database.db');
+const db = SQLite.openDatabase('superfan.db');
 
-const EventCheckInScreen = () => {
+const EventCheckInScreen = ({ route }) => {
+  const { event_id } = route.params || {};
+  const { user_id } = useContext(WalletContext);
   const [checkIns, setCheckIns] = useState([]);
-  const route = useRoute();
-  const wallet = useContext(WalletContext);
 
-  const { event_id, user_id: routeUserId, referrer } = route.params || {};
-  const user_id = routeUserId || wallet?.accounts?.[0] || 'Unknown';
+  const query = event_id
+    ? `SELECT * FROM scans WHERE event_id = ? ORDER BY scanned_at DESC;`
+    : `SELECT * FROM scans ORDER BY scanned_at DESC;`;
+  const params = event_id ? [event_id] : [];
 
-  useEffect(() => {
+  const fetchCheckIns = () => {
     db.transaction(tx => {
       tx.executeSql(
         `CREATE TABLE IF NOT EXISTS scans (
@@ -24,13 +27,6 @@ const EventCheckInScreen = () => {
           scanned_at TEXT
         );`
       );
-
-      const query = event_id
-        ? `SELECT * FROM scans WHERE event_id = ? ORDER BY scanned_at DESC;`
-        : `SELECT * FROM scans ORDER BY scanned_at DESC;`;
-
-      const params = event_id ? [event_id] : [];
-
       tx.executeSql(
         query,
         params,
@@ -38,69 +34,69 @@ const EventCheckInScreen = () => {
         (_, error) => console.error('Check-in fetch error:', error)
       );
     });
+  };
+
+  // Fetch on mount
+  useEffect(() => {
+    fetchCheckIns();
   }, [event_id]);
+
+  // Refresh when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchCheckIns();
+    }, [event_id])
+  );
+
+  // Optional: simulate adding a check-in (for testing)
+  const addCheckIn = () => {
+    db.transaction(tx => {
+      tx.executeSql(
+        `INSERT INTO scans (event_id, fan_id, scanned_at) VALUES (?, ?, ?);`,
+        [event_id || 'default-event', user_id, new Date().toISOString()],
+        () => {
+          console.log('Check-in added');
+          fetchCheckIns();
+        },
+        (_, error) => console.error('Insert error:', error)
+      );
+    });
+  };
 
   const renderItem = ({ item }) => (
     <View style={styles.item}>
-      <Text style={styles.event}>📍 Event: {item.event_id}</Text>
-      <Text style={styles.fan}>🧑‍🎤 Fan: {item.fan_id}</Text>
-      <Text style={styles.time}>🕒 Checked in: {item.scanned_at}</Text>
+      <Text style={styles.fan}>Fan: {item.fan_id}</Text>
+      <Text style={styles.event}>Event: {item.event_id}</Text>
+      <Text style={styles.time}>
+        🕒 Checked in: {dayjs(item.scanned_at).format('MMM D, YYYY h:mm A')}
+      </Text>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🎟️ Event Check-In Tracker</Text>
-      {event_id && <Text style={styles.meta}>Event ID: {event_id}</Text>}
-      {user_id && <Text style={styles.meta}>User ID: {user_id}</Text>}
-      {referrer && <Text style={styles.meta}>Referred by: {referrer}</Text>}
+      {checkIns.length === 0 && (
+        <Text style={styles.emptyMessage}>
+          No check-ins yet for this event.
+        </Text>
+      )}
       <FlatList
         data={checkIns}
         keyExtractor={item => item.id.toString()}
         renderItem={renderItem}
       />
+      <Button title="Add Test Check-In" onPress={addCheckIn} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#facc15',
-    marginBottom: 10,
-  },
-  meta: {
-    fontSize: 14,
-    color: '#94a3b8',
-    marginBottom: 5,
-  },
-  item: {
-    backgroundColor: '#1e293b',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
-  },
-  event: {
-    color: '#f8fafc',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  fan: {
-    color: '#f8fafc',
-    fontSize: 14,
-    marginTop: 4,
-  },
-  time: {
-    color: '#94a3b8',
-    fontSize: 12,
-    marginTop: 4,
-  },
+  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
+  item: { padding: 12, borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
+  fan: { fontSize: 16, fontWeight: '500' },
+  event: { fontSize: 14, color: '#64748b' },
+  time: { fontSize: 12, color: '#94a3b8', marginTop: 4 },
+  emptyMessage: { textAlign: 'center', color: '#94a3b8', marginTop: 20 },
 });
 
 export default EventCheckInScreen;
