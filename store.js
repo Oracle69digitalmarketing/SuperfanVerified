@@ -1,4 +1,4 @@
-8import { configureStore } from '@reduxjs/toolkit';
+import { configureStore } from '@reduxjs/toolkit';
 
 // Placeholder reducer — replace with actual slices
 import userReducer from './features/userSlice';
