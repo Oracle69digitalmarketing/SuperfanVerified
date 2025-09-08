@@ -1,91 +1,67 @@
-import React, { useEffect } from 'react';
-import { View, Button, LogBox } from 'react-native';
+import React, { useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import * as SQLite from 'expo-sqlite';
-import * as Sentry from 'sentry-expo';
-import AppNavigator from './AppNavigator';
-import { WalletProvider } from './providers/WalletProvider'; // Adjust path if needed
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { WalletContext } from './providers/WalletProvider';
+import * as Linking from 'expo-linking';
 
-const db = SQLite.openDatabase('fanbase.db');
+// Screens
+import HomeScreen from './screens/HomeScreen';
+import WalletScreen from './screens/WalletScreen';
+import DashboardScreen from './screens/DashboardScreen';
+import ArtistDashboard from './screens/ArtistDashboard';
+import QRScannerScreen from './screens/QRScannerScreen';
+import ScansScreen from './screens/ScansScreen';
+import UsersScreen from './screens/UsersScreen';
+import LeaderboardScreen from './screens/LeaderboardScreen';
+import VotingHistoryScreen from './screens/VotingHistoryScreen';
+import EventCheckInScreen from './screens/EventCheckInScreen';
+import StakingScreen from './screens/StakingScreen';
+import GovernanceScreen from './screens/GovernanceScreen';
 
-// 🔧 Deep linking config
 const linking = {
   prefixes: ['superfanverified://'],
   config: {
     screens: {
       Home: 'home',
+      Wallet: 'wallet',
+      Dashboard: 'dashboard',
+      ArtistDashboard: 'artist',
+      QRScanner: 'scan',
+      Scans: 'scans',
+      Users: 'users',
+      LeaderboardScreen: 'leaderboard',
+      VotingHistory: 'voting',
+      EventCheckIn: 'event',
       Staking: 'staking',
       Governance: 'governance',
-      QRScanner: 'qrscanner',
-      Users: 'users',
-      Scans: 'scans',
-      VotingHistory: 'voting-history',
-      LeaderboardScreen: 'leaderboard',
-      EventCheckIn: {
-        path: 'event-checkin',
-        parse: { event_id: (id: string) => `${id}` },
-      },
     },
   },
 };
 
-// 🧱 Setup local SQLite tables
-const setupDatabase = () => {
-  db.transaction(tx => {
-    tx.executeSql(
-      `CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        referral_code TEXT UNIQUE,
-        referred_by TEXT,
-        points INTEGER DEFAULT 0,
-        rank INTEGER DEFAULT 0,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP
-      );`,
-      [],
-      () => console.log('✅ users table ready'),
-      (_, error) => {
-        console.error('❌ users table error:', error);
-        Sentry.Native.captureException(error);
-        return false;
-      }
-    );
-  });
-};
+const Stack = createNativeStackNavigator();
 
-// 🧪 Debug utility
-const fetchUsers = () => {
-  db.transaction(tx => {
-    tx.executeSql(
-      'SELECT * FROM users;',
-      [],
-      (_, { rows }) => {
-        console.log('Users:', rows._array);
-      },
-      (_, error) => {
-        console.error('Select error:', error);
-        Sentry.Native.captureException(error);
-        return false;
-      }
-    );
-  });
-};
-
-export default function App(): JSX.Element {
-  useEffect(() => {
-    setupDatabase();
-    LogBox.ignoreLogs(['Non-serializable values were found in the navigation state']);
-  }, []);
+export default function AppNavigator() {
+  const wallet = useContext(WalletContext);
 
   return (
-    <WalletProvider>
-      <NavigationContainer linking={linking}>
-        <View style={{ flex: 1 }}>
-          <AppNavigator />
-          <Button title="Show Users in Console" onPress={fetchUsers} />
-        </View>
-      </NavigationContainer>
-    </WalletProvider>
+    <NavigationContainer linking={linking}>
+      <Stack.Navigator
+        initialRouteName={wallet?.connected ? 'Home' : 'Wallet'}
+        screenOptions={{ headerShown: true }}
+      >
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Wallet" component={WalletScreen} />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <Stack.Screen name="ArtistDashboard" component={ArtistDashboard} />
+        <Stack.Screen name="QRScanner" component={QRScannerScreen} />
+        <Stack.Screen name="Scans" component={ScansScreen} />
+        <Stack.Screen name="Users" component={UsersScreen} />
+        <Stack.Screen name="LeaderboardScreen" component={LeaderboardScreen} />
+        <Stack.Screen name="VotingHistory" component={VotingHistoryScreen} />
+        <Stack.Screen name="EventCheckIn" component={EventCheckInScreen} />
+        <Stack.Screen name="Staking" component={StakingScreen} />
+        <Stack.Screen name="Governance" component={GovernanceScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
