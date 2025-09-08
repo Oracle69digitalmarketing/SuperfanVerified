@@ -1,87 +1,31 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, Button, Linking, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Button, Alert, FlatList, TouchableOpacity } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
-import * as SQLite from 'expo-sqlite';
-import { WalletContext } from '../providers/WalletProvider';
-import Constants from 'expo-constants';
-
-const db = SQLite.openDatabase('my-database.db');
-const API_URL = Constants.expoConfig.extra.apiUrl; // 👈 from app.config.js
+import { useWallet } from '../providers/WalletProvider';
 
 const QRScannerScreen = () => {
-  const [scannedData, setScannedData] = useState(null);
+  const [scannedData, setScannedData] = useState<string | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const navigation = useNavigation();
-  const wallet = useContext(WalletContext);
-  const walletAddress = wallet?.accounts?.[0] || 'Unknown';
 
-  useEffect(() => {
-    db.transaction(tx => {
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS scans (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          raw_data TEXT,
-          scanned_at TEXT,
-          scanned_by TEXT,
-          status TEXT
-        );`
-      );
-    });
-  }, []);
+  const { wallet, scans, addScan, refreshScans } = useWallet();
 
-  const handleBarCodeScanned = async ({ type, data }) => {
-    Alert.alert(`QR Code Scanned!`, `Type: ${type}\nData: ${data}`);
+  const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
+    Alert.alert('QR Code Scanned!', `Type: ${type}\nData: ${data}`);
     setScannedData(data);
 
-    // 1️⃣ Save to SQLite first (status = "pending")
-    db.transaction(tx => {
-      tx.executeSql(
-        'INSERT INTO scans (raw_data, scanned_at, scanned_by, status) VALUES (?, datetime("now"), ?, ?);',
-        [data, walletAddress, "pending"],
-        () => console.log('Scan saved locally:', data),
-        (_, error) => console.error('Scan insert error:', error)
-      );
-    });
+    // Save + sync
+    addScan(data);
 
-    // 2️⃣ Send to backend
-    try {
-      const res = await fetch(`${API_URL}/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          rawData: data,
-          wallet: walletAddress,
-        }),
-      });
-      const result = await res.json();
-      console.log('✅ Backend verified:', result);
-
-      // 3️⃣ Update SQLite with backend status
-      db.transaction(tx => {
-        tx.executeSql(
-          'UPDATE scans SET status = ? WHERE raw_data = ?;',
-          [result.status || "verified", data],
-          () => console.log('SQLite updated with status:', result.status),
-          (_, error) => console.error('SQLite update error:', error)
-        );
-      });
-    } catch (err) {
-      console.error('❌ Backend error:', err);
-    }
-
-    // 4️⃣ Optional deep link navigation
+    // Optional: deep link navigation
     try {
       const url = new URL(data);
       const screen = url.pathname.replace('/', '');
       const params = Object.fromEntries(url.searchParams.entries());
-      navigation.navigate(screen, params);
+      navigation.navigate(screen as never, params as never);
     } catch (error) {
-      if (data.startsWith('http')) {
-        Linking.openURL(data);
-      } else {
-        console.warn('Not a valid deep link or URL:', data);
-      }
+      console.log('Not a deep link, ignoring…');
     }
   };
 
@@ -97,34 +41,73 @@ const QRScannerScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* Camera Scanner */}
       <CameraView
         style={styles.camera}
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
         onBarcodeScanned={scannedData ? undefined : handleBarCodeScanned}
       />
+
+      {/* Overlay after scan */}
       {scannedData && (
         <View style={styles.overlay}>
           <Text style={styles.overlayText}>Last Scanned: {scannedData}</Text>
           <Button title="Scan Again" onPress={() => setScannedData(null)} />
         </View>
       )}
+
+      {/* Scan History */}
+      <View style={styles.history}>
+        <View style={styles.historyHeader}>
+          <Text style={styles.historyTitle}>Scan History</Text>
+          <Button title="Refresh" onPress={refreshScans} />
+        </View>
+        <FlatList
+          data={scans}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('ScanDetails' as never, { id: item.id } as never)
+              }
+            >
+              <View style={styles.scanRow}>
+                <Text style={styles.scanText}>{item.raw_data}</Text>
+                <Text style={styles.scanStatus}>{item.status}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1 },
   camera: { flex: 1, width: '100%' },
-  text: { fontSize: 20, fontWeight: 'bold' },
+  text: { fontSize: 18, fontWeight: '600', textAlign: 'center' },
   overlay: {
     position: 'absolute',
     bottom: 0,
     width: '100%',
-    padding: 20,
+    padding: 15,
     backgroundColor: 'rgba(0,0,0,0.7)',
     alignItems: 'center',
   },
   overlayText: { color: '#fff', fontSize: 16, marginBottom: 10 },
+  history: { flex: 1, backgroundColor: '#f8f9fa', padding: 10 },
+  historyHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+  historyTitle: { fontSize: 20, fontWeight: '700' },
+  scanRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderColor: '#ddd',
+  },
+  scanText: { flex: 1, fontSize: 14 },
+  scanStatus: { fontSize: 14, fontWeight: '600', color: '#007BFF' },
 });
 
 export default QRScannerScreen;
