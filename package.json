@@ -13,5 +13,24 @@
     "concurrently": "^8.2.2",
     "cross-env": "^10.0.0",
     "eslint": "^8.53.0"
+  "name": "superfanverified",
+  "version": "1.0.0",
+  "license": "OBSD",
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@burnt-labs/abstraxion-react-native": "1.0.0-alpha.6",
+    "@cosmjs/stargate": "0.36.0",
+    "@expo/config-plugins": "10.1.2",
+    "@expo/prebuild-config": "9.0.11",
+    "@react-native-async-storage/async-storage": "^1.17.11",
+    "@react-native-community/netinfo": "11.4.1",
+    "@react-navigation/bottom-tabs": "7.4.7",
+    "@react-navigation/drawer": "7.5.8"
   }
 }
