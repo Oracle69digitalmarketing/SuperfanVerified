@@ -1,9 +1,12 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import * as SQLite from 'expo-sqlite';
-import { WalletContext } from '../providers/WalletProvider'; // Adjust path if needed
+import { WalletContext } from '../providers/WalletProvider';
 
 const db = SQLite.openDatabase('my-database.db');
+
+// ✅ Use apiUrl from Expo config
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://superfan-backend.onrender.com";
 
 const ScansScreen = () => {
   const [scans, setScans] = useState([]);
@@ -17,7 +20,8 @@ const ScansScreen = () => {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           raw_data TEXT,
           scanned_at TEXT,
-          scanned_by TEXT
+          scanned_by TEXT,
+          status TEXT
         );`
       );
 
@@ -27,12 +31,46 @@ const ScansScreen = () => {
         (_, { rows }) => {
           setScans(rows._array);
         },
-        (_, error) => {
-          console.error('Scan fetch error:', error);
-        }
+        (_, error) => console.error('Scan fetch error:', error)
       );
     });
   }, []);
+
+  const verifyWithBackend = async (scan) => {
+    try {
+      const response = await fetch(`${API_URL}/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rawData: scan.raw_data,
+          wallet: walletAddress,
+        }),
+      });
+      const result = await response.json();
+
+      // Update status in DB
+      db.transaction(tx => {
+        tx.executeSql(
+          'UPDATE scans SET status = ? WHERE id = ?;',
+          [result.verified ? "✅ Verified" : "❌ Not Valid", scan.id]
+        );
+      });
+
+      // Update state
+      setScans(scans.map(s =>
+        s.id === scan.id ? { ...s, status: result.verified ? "✅ Verified" : "❌ Not Valid" } : s
+      ));
+    } catch (err) {
+      console.error('Backend verify error:', err);
+    }
+  };
+
+  // Auto-verify each scan if not yet verified
+  useEffect(() => {
+    scans.forEach(scan => {
+      if (!scan.status) verifyWithBackend(scan);
+    });
+  }, [scans]);
 
   const renderItem = ({ item }) => {
     const isMine = item.scanned_by === walletAddress;
@@ -44,6 +82,9 @@ const ScansScreen = () => {
           <Text style={styles.byline}>
             Scanned by: {isMine ? 'You' : item.scanned_by}
           </Text>
+        )}
+        {item.status && (
+          <Text style={styles.status}>{item.status}</Text>
         )}
       </View>
     );
@@ -96,6 +137,24 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     color: '#94a3b8',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  byline: {
+    color: '#94a3b8',
+    fontSize: 12,
+    marginTop: 2,
+    fontStyle: 'italic',
+  },
+  status: {
+    marginTop: 5,
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#22c55e', // green for ✅
+  },
+});
+
+export default ScansScreen;    color: '#94a3b8',
     fontSize: 12,
     marginTop: 4,
   },
