@@ -1,4 +1,4 @@
-6name: Superfan CI
+name: Superfan CI
 
 on:
   push:
