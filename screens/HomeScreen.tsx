@@ -5,7 +5,8 @@ import { WalletContext } from '../providers/WalletProvider';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = Constants.expoConfig.extra.apiUrl;
+// Pull backend URL from app.json → expo.extra.apiUrl
+const API_URL = Constants.expoConfig?.extra?.apiUrl;
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -16,7 +17,7 @@ const HomeScreen = () => {
   const [username, setUsername] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
-  // Load session on mount
+  // Restore session on mount
   useEffect(() => {
     const loadSession = async () => {
       try {
@@ -34,7 +35,7 @@ const HomeScreen = () => {
     loadSession();
   }, []);
 
-  // Wallet connect + Auth
+  // Connect wallet + authenticate with backend
   const handleConnect = async () => {
     try {
       setLoading(true);
@@ -46,17 +47,18 @@ const HomeScreen = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ wallet: wallet.accounts[0] }),
         });
+
         const data = await res.json();
 
         if (data.success) {
-          setUsername(data.username || null);
+          setUsername(data.username || wallet.accounts[0]);
           setToken(data.token);
 
           // Persist session
           await AsyncStorage.setItem("auth_token", data.token);
           await AsyncStorage.setItem("auth_user", data.username || wallet.accounts[0]);
 
-          console.log("✅ Auth success & saved:", data);
+          console.log("✅ Auth success:", data);
         } else {
           Alert.alert("Auth Failed", data.message || "Could not authenticate wallet.");
         }
@@ -69,7 +71,7 @@ const HomeScreen = () => {
     }
   };
 
-  // Logout
+  // Disconnect & clear session
   const handleDisconnect = async () => {
     try {
       wallet.disconnect?.();
@@ -85,6 +87,7 @@ const HomeScreen = () => {
     }
   };
 
+  // Wrapper for protected screens
   const requireWallet = (screen: string) => {
     if (!token) {
       alert('Please connect your wallet to access this feature.');
