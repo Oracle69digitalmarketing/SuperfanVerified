@@ -1,4 +1,4 @@
-#!/bin/bash
+1#!/bin/bash
 set -e
 echo "⚡ Setting up Superfan backend with Express + PostgreSQL..."
 
