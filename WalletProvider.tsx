@@ -1,11 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, createContext } from 'react';
 import { WalletConnectProvider, useWalletConnect } from '@walletconnect/react-native-dapp';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SQLite from 'expo-sqlite';
 
 const db = SQLite.openDatabase('my-database.db');
 
-export default function WalletProvider({ children }: { children: React.ReactNode }) {
+// 👇 Create a context we can consume anywhere
+export const WalletContext = createContext(null);
+
+export default function WalletProvider({ children }) {
   return (
     <WalletConnectProvider
       redirectUrl="superfanverified://"
@@ -16,16 +19,19 @@ export default function WalletProvider({ children }: { children: React.ReactNode
   );
 }
 
-const WalletSync = ({ children }: { children: React.ReactNode }) => {
+const WalletSync = ({ children }) => {
   const connector = useWalletConnect();
+  const [wallet, setWallet] = useState(null);
 
   useEffect(() => {
     if (connector.connected) {
       const walletAddress = connector.accounts[0];
       const chainId = connector.chainId;
 
+      setWallet({ accounts: [walletAddress], chainId }); // 👈 makes it available to QRScanner, Scans, etc.
+
       db.transaction(tx => {
-        // Create table with extended schema
+        // Create users table
         tx.executeSql(
           `CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,36 +39,16 @@ const WalletSync = ({ children }: { children: React.ReactNode }) => {
             chain_id INTEGER,
             username TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
-          );`,
-          [],
-          () => console.log('✅ Users table ready'),
-          (_, error) => {
-            console.error('❌ Table creation error:', error);
-            return false;
-          }
+          );`
         );
 
-        // Check for existing wallet before inserting
+        // Insert or skip if exists
         tx.executeSql(
-          'SELECT * FROM users WHERE wallet_address = ?;',
-          [walletAddress],
-          (_, { rows }) => {
-            if (rows.length === 0) {
-              tx.executeSql(
-                'INSERT INTO users (wallet_address, chain_id) VALUES (?, ?);',
-                [walletAddress, chainId],
-                () => console.log('✅ Wallet saved:', walletAddress),
-                (_, error) => {
-                  console.error('❌ Wallet insert error:', error);
-                  return false;
-                }
-              );
-            } else {
-              console.log('ℹ️ Wallet already exists:', walletAddress);
-            }
-          },
+          'INSERT OR IGNORE INTO users (wallet_address, chain_id) VALUES (?, ?);',
+          [walletAddress, chainId],
+          () => console.log('✅ Wallet saved:', walletAddress),
           (_, error) => {
-            console.error('❌ Wallet lookup error:', error);
+            console.error('❌ Wallet insert error:', error);
             return false;
           }
         );
@@ -70,5 +56,9 @@ const WalletSync = ({ children }: { children: React.ReactNode }) => {
     }
   }, [connector.connected]);
 
-  return <>{children}</>;
+  return (
+    <WalletContext.Provider value={wallet}>
+      {children}
+    </WalletContext.Provider>
+  );
 };
