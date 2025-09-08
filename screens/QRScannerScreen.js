@@ -3,9 +3,11 @@ import { View, Text, StyleSheet, Button, Linking, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
 import * as SQLite from 'expo-sqlite';
-import { WalletContext } from '../providers/WalletProvider'; // Adjust path if needed
+import { WalletContext } from '../providers/WalletProvider';
+import Constants from 'expo-constants';
 
 const db = SQLite.openDatabase('my-database.db');
+const API_URL = Constants.expoConfig.extra.apiUrl; // 👈 from app.config.js
 
 const QRScannerScreen = () => {
   const [scannedData, setScannedData] = useState(null);
@@ -21,27 +23,54 @@ const QRScannerScreen = () => {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           raw_data TEXT,
           scanned_at TEXT,
-          scanned_by TEXT
+          scanned_by TEXT,
+          status TEXT
         );`
       );
     });
   }, []);
 
-  const handleBarCodeScanned = ({ type, data }) => {
+  const handleBarCodeScanned = async ({ type, data }) => {
     Alert.alert(`QR Code Scanned!`, `Type: ${type}\nData: ${data}`);
     setScannedData(data);
 
-    // Save to SQLite
+    // 1️⃣ Save to SQLite first (status = "pending")
     db.transaction(tx => {
       tx.executeSql(
-        'INSERT INTO scans (raw_data, scanned_at, scanned_by) VALUES (?, datetime("now"), ?);',
-        [data, walletAddress],
-        () => console.log('Scan saved to DB:', data),
+        'INSERT INTO scans (raw_data, scanned_at, scanned_by, status) VALUES (?, datetime("now"), ?, ?);',
+        [data, walletAddress, "pending"],
+        () => console.log('Scan saved locally:', data),
         (_, error) => console.error('Scan insert error:', error)
       );
     });
 
-    // Handle deep link navigation
+    // 2️⃣ Send to backend
+    try {
+      const res = await fetch(`${API_URL}/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rawData: data,
+          wallet: walletAddress,
+        }),
+      });
+      const result = await res.json();
+      console.log('✅ Backend verified:', result);
+
+      // 3️⃣ Update SQLite with backend status
+      db.transaction(tx => {
+        tx.executeSql(
+          'UPDATE scans SET status = ? WHERE raw_data = ?;',
+          [result.status || "verified", data],
+          () => console.log('SQLite updated with status:', result.status),
+          (_, error) => console.error('SQLite update error:', error)
+        );
+      });
+    } catch (err) {
+      console.error('❌ Backend error:', err);
+    }
+
+    // 4️⃣ Optional deep link navigation
     try {
       const url = new URL(data);
       const screen = url.pathname.replace('/', '');
@@ -84,19 +113,9 @@ const QRScannerScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  camera: {
-    flex: 1,
-    width: '100%',
-  },
-  text: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  camera: { flex: 1, width: '100%' },
+  text: { fontSize: 20, fontWeight: 'bold' },
   overlay: {
     position: 'absolute',
     bottom: 0,
@@ -105,11 +124,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.7)',
     alignItems: 'center',
   },
-  overlayText: {
-    color: '#fff',
-    fontSize: 16,
-    marginBottom: 10,
-  },
+  overlayText: { color: '#fff', fontSize: 16, marginBottom: 10 },
 });
 
 export default QRScannerScreen;
