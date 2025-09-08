@@ -1,4 +1,4 @@
--- Superfan Backend: Tables + Sample Data
+1-- Superfan Backend: Tables + Sample Data
 
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
