@@ -1,4 +1,4 @@
-                                        1Table "public.users"
+                                        Table "public.users"
    Column   |            Type             | Collation | Nullable |              Default              
 ------------+-----------------------------+-----------+----------+-----------------------------------
  id         | integer                     |           | not null | nextval('users_id_seq'::regclass)
