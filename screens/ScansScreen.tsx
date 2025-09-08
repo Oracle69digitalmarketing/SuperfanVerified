@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Alert } from 'react-native';
 import * as SQLite from 'expo-sqlite';
+import Constants from 'expo-constants';
 import { WalletContext } from '../providers/WalletProvider';
 
 const db = SQLite.openDatabase('my-database.db');
-
-// ✅ Use apiUrl from Expo config
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://superfan-backend.onrender.com";
+const API_URL = Constants.expoConfig.extra.apiUrl; // from app.config.js
 
 const ScansScreen = () => {
   const [scans, setScans] = useState([]);
@@ -28,49 +27,58 @@ const ScansScreen = () => {
       tx.executeSql(
         'SELECT * FROM scans ORDER BY scanned_at DESC;',
         [],
-        (_, { rows }) => {
-          setScans(rows._array);
-        },
+        (_, { rows }) => setScans(rows._array),
         (_, error) => console.error('Scan fetch error:', error)
       );
     });
   }, []);
 
-  const verifyWithBackend = async (scan) => {
+  const sendToBackend = async (scanData) => {
     try {
-      const response = await fetch(`${API_URL}/verify`, {
+      const res = await fetch(`${API_URL}/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          rawData: scan.raw_data,
+          rawData: scanData,
           wallet: walletAddress,
         }),
       });
-      const result = await response.json();
-
-      // Update status in DB
-      db.transaction(tx => {
-        tx.executeSql(
-          'UPDATE scans SET status = ? WHERE id = ?;',
-          [result.verified ? "✅ Verified" : "❌ Not Valid", scan.id]
-        );
-      });
-
-      // Update state
-      setScans(scans.map(s =>
-        s.id === scan.id ? { ...s, status: result.verified ? "✅ Verified" : "❌ Not Valid" } : s
-      ));
+      const result = await res.json();
+      console.log('✅ Verified with backend:', result);
+      return result.status || 'unknown';
     } catch (err) {
-      console.error('Backend verify error:', err);
+      console.error('❌ Backend error:', err);
+      return 'error';
     }
   };
 
-  // Auto-verify each scan if not yet verified
-  useEffect(() => {
-    scans.forEach(scan => {
-      if (!scan.status) verifyWithBackend(scan);
+  // Call this when you get a new scan
+  const handleNewScan = async (scanData) => {
+    const status = await sendToBackend(scanData);
+    const timestamp = new Date().toISOString();
+
+    db.transaction(tx => {
+      tx.executeSql(
+        `INSERT INTO scans (raw_data, scanned_at, scanned_by, status) 
+         VALUES (?, ?, ?, ?);`,
+        [scanData, timestamp, walletAddress, status],
+        (_, result) => {
+          console.log('Saved scan with status:', status);
+          setScans(prev => [
+            { id: result.insertId, raw_data: scanData, scanned_at: timestamp, scanned_by: walletAddress, status },
+            ...prev,
+          ]);
+        },
+        (_, error) => console.error('DB insert error:', error)
+      );
     });
-  }, [scans]);
+
+    if (status === 'verified') {
+      Alert.alert('✅ Verified', 'This scan is authentic');
+    } else {
+      Alert.alert('⚠️ Not Verified', 'Could not confirm this scan');
+    }
+  };
 
   const renderItem = ({ item }) => {
     const isMine = item.scanned_by === walletAddress;
@@ -78,13 +86,13 @@ const ScansScreen = () => {
       <View style={[styles.scanItem, isMine && styles.highlight]}>
         <Text style={styles.dataText}>{item.raw_data}</Text>
         <Text style={styles.timestamp}>{item.scanned_at}</Text>
+        <Text style={{ color: item.status === 'verified' ? 'lime' : 'tomato' }}>
+          Status: {item.status || 'unknown'}
+        </Text>
         {item.scanned_by && (
           <Text style={styles.byline}>
             Scanned by: {isMine ? 'You' : item.scanned_by}
           </Text>
-        )}
-        {item.status && (
-          <Text style={styles.status}>{item.status}</Text>
         )}
       </View>
     );
@@ -137,24 +145,6 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     color: '#94a3b8',
-    fontSize: 12,
-    marginTop: 4,
-  },
-  byline: {
-    color: '#94a3b8',
-    fontSize: 12,
-    marginTop: 2,
-    fontStyle: 'italic',
-  },
-  status: {
-    marginTop: 5,
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#22c55e', // green for ✅
-  },
-});
-
-export default ScansScreen;    color: '#94a3b8',
     fontSize: 12,
     marginTop: 4,
   },
