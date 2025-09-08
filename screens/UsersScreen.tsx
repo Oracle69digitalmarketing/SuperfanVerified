@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,10 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
-import * as SQLite from 'expo-sqlite';
 import { Swipeable } from 'react-native-gesture-handler';
+import Constants from 'expo-constants';
 
-const db = SQLite.openDatabase('my-database.db');
-
+const API_URL = Constants.expoConfig.extra.apiUrl;
 const PAGE_SIZE = 10;
 
 const UsersScreen = () => {
@@ -24,27 +23,21 @@ const UsersScreen = () => {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
-  const fetchUsers = () => {
-    setRefreshing(true);
-    db.transaction(tx => {
-      tx.executeSql(
-        'SELECT * FROM users ORDER BY id DESC;',
-        [],
-        (_, { rows }) => {
-          const data = rows._array;
-          setAllUsers(data);
-          setUsers(data.slice(0, PAGE_SIZE));
-          setPage(1);
-          setLoading(false);
-          setRefreshing(false);
-        },
-        (_, error) => {
-          console.error('Select error:', error);
-          setLoading(false);
-          setRefreshing(false);
-        }
-      );
-    });
+  const fetchUsers = async () => {
+    try {
+      setRefreshing(true);
+      const response = await fetch(`${API_URL}/users`);
+      const data = await response.json();
+      setAllUsers(data);
+      setUsers(data.slice(0, PAGE_SIZE));
+      setPage(1);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      Alert.alert('Error', 'Failed to fetch users from server.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   };
 
   useEffect(() => {
@@ -67,32 +60,27 @@ const UsersScreen = () => {
     setPage(prev => prev + 1);
   };
 
-  const deleteUser = id => {
-    db.transaction(tx => {
-      tx.executeSql(
-        'DELETE FROM users WHERE id = ?;',
-        [id],
-        () => {
-          fetchUsers();
+  const deleteUser = async (id) => {
+    Alert.alert('Delete User', 'Are you sure?', [
+      { text: 'Cancel' },
+      {
+        text: 'Delete',
+        onPress: async () => {
+          try {
+            await fetch(`${API_URL}/users/${id}`, { method: 'DELETE' });
+            fetchUsers(); // Refresh after deletion
+          } catch (err) {
+            console.error('Delete error:', err);
+            Alert.alert('Error', 'Failed to delete user.');
+          }
         },
-        (_, error) => {
-          console.error('Delete error:', error);
-        }
-      );
-    });
+      },
+    ]);
   };
 
   const renderRightActions = (item) => (
     <View style={styles.deleteBox}>
-      <Text
-        style={styles.deleteText}
-        onPress={() =>
-          Alert.alert('Delete User', `Delete ${item.name}?`, [
-            { text: 'Cancel' },
-            { text: 'Delete', onPress: () => deleteUser(item.id) },
-          ])
-        }
-      >
+      <Text style={styles.deleteText} onPress={() => deleteUser(item.id)}>
         Delete
       </Text>
     </View>
@@ -111,7 +99,7 @@ const UsersScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Local Users</Text>
+      <Text style={styles.title}>Users</Text>
 
       <TextInput
         style={styles.searchInput}
@@ -141,59 +129,15 @@ const UsersScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    marginTop: 20,
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#333',
-  },
-  searchInput: {
-    backgroundColor: '#f0f0f0',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  userCard: {
-    padding: 15,
-    marginVertical: 8,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  userDetails: {
-    fontSize: 14,
-    color: '#555',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
-    marginTop: 50,
-  },
-  deleteBox: {
-    backgroundColor: '#ff3b30',
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    paddingHorizontal: 20,
-    borderRadius: 10,
-  },
-  deleteText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+  container: { padding: 20, marginTop: 20, flex: 1, backgroundColor: '#fff' },
+  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 15, color: '#333' },
+  searchInput: { backgroundColor: '#f0f0f0', padding: 10, borderRadius: 8, marginBottom: 10 },
+  userCard: { padding: 15, marginVertical: 8, backgroundColor: '#f9f9f9', borderRadius: 10, borderWidth: 1, borderColor: '#ddd' },
+  userName: { fontSize: 18, fontWeight: '600', marginBottom: 4 },
+  userDetails: { fontSize: 14, color: '#555' },
+  emptyText: { fontSize: 16, color: '#999', textAlign: 'center', marginTop: 50 },
+  deleteBox: { backgroundColor: '#ff3b30', justifyContent: 'center', alignItems: 'flex-end', paddingHorizontal: 20, borderRadius: 10 },
+  deleteText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
 });
 
 export default UsersScreen;
