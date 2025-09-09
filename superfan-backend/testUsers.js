@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 const BASE = "https://superfan-backend.onrender.com";
 
 async function testUsers() {
-  // Create user
+  console.log("\n=== USERS ===");
   const createRes = await fetch(`${BASE}/users`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -15,9 +15,8 @@ async function testUsers() {
   });
   console.log("Create User:", await createRes.json());
 
-  // List users
   const listRes = await fetch(`${BASE}/users`);
   console.log("List Users:", await listRes.json());
 }
 
-testUsers();
+testUsers().catch(console.error);
