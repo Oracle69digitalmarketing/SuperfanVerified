@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Superfan backend API",
   "main": "app.js",
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
     "setup": "bash setup-backend.sh",
     "start": "node app.js",
