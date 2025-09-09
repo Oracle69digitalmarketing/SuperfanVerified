@@ -1,14 +1,27 @@
+// backend/routes/externalDataRoutes.js
 import express from 'express';
 import ExternalData from '../models/ExternalData.js';
 
 const router = express.Router();
 
-// Connect external account (mock)
+// ----------------------------
+// POST: Connect external account (mock)
+// ----------------------------
 router.post('/connect', async (req, res) => {
   try {
     const { userId, source, data } = req.body;
-    const externalData = new ExternalData({ userId, source, data, verified: true });
+    if (!userId || !source || !data) {
+      return res.status(400).json({ error: 'userId, source, and data are required' });
+    }
+
+    const externalData = new ExternalData({
+      userId,
+      source,
+      data,
+      verified: true,
+    });
     await externalData.save();
+
     res.status(201).json(externalData);
   } catch (err) {
     console.error('Connect external account error:', err);
@@ -16,7 +29,9 @@ router.post('/connect', async (req, res) => {
   }
 });
 
-// Fetch user external data
+// ----------------------------
+// GET: Fetch user external data
+// ----------------------------
 router.get('/:userId', async (req, res) => {
   try {
     const data = await ExternalData.find({ userId: req.params.userId });
