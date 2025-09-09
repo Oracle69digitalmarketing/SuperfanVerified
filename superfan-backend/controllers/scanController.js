@@ -1,6 +1,6 @@
 // controllers/scanController.js
 import User from '../models/User.js';
-import mongoose from 'mongoose';
+import Scan from '../models/Scan.js';
 
 // 🧾 Add a new scan + update streaks & tier
 export const addScan = async (req, res) => {
@@ -12,6 +12,10 @@ export const addScan = async (req, res) => {
 
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Save raw scan
+    const scan = new Scan({ userId, artist });
+    await scan.save();
 
     const today = new Date().toISOString().slice(0, 10);
     const lastScanDate = user.fanStreak.lastScanDate
@@ -41,8 +45,7 @@ export const addScan = async (req, res) => {
 
     user.fanStreak.lastScanDate = new Date(today);
 
-    // 🏆 Assign tier based on streaks & total scans
-    // (for Mongo, let’s just approximate with streaks)
+    // 🏆 Assign tier
     if (user.fanStreak.longest >= 30) {
       user.fanTier = 'Legend';
     } else if (user.fanStreak.longest >= 14) {
@@ -57,6 +60,7 @@ export const addScan = async (req, res) => {
 
     res.json({
       message: 'Scan logged successfully',
+      scan,
       user: {
         id: user._id,
         walletAddress: user.walletAddress,
@@ -70,23 +74,15 @@ export const addScan = async (req, res) => {
   }
 };
 
-// 📋 Get latest scans (mocked for now, since we didn’t persist scans separately)
+// 📋 Get latest scans with user info
 export const listScans = async (_req, res) => {
   try {
-    // For now, just return users sorted by last scan date
-    const users = await User.find()
-      .sort({ 'fanStreak.lastScanDate': -1 })
+    const scans = await Scan.find()
+      .populate('userId', 'walletAddress name fanStreak fanTier')
+      .sort({ createdAt: -1 })
       .limit(200);
 
-    res.json(
-      users.map((u) => ({
-        id: u._id,
-        walletAddress: u.walletAddress,
-        name: u.name,
-        fanStreak: u.fanStreak,
-        fanTier: u.fanTier,
-      }))
-    );
+    res.json(scans);
   } catch (e) {
     console.error('❌ listScans failed:', e);
     res.status(500).json({ error: 'listScans failed' });
