@@ -1,14 +1,15 @@
+// backend/routes/walletRoutes.js
 import express from 'express';
 import Wallet from '../models/Wallet.js';
 import { nanoid } from 'nanoid';
 
 const router = express.Router();
 
-// Create wallet
+// 🪙 Create wallet
 router.post('/', async (req, res) => {
   try {
     const { userId } = req.body;
-    const address = `0x${nanoid(40)}`; // simple mock address
+    const address = `0x${nanoid(40)}`; // mock wallet address
     const wallet = new Wallet({ userId, address });
     await wallet.save();
     res.status(201).json(wallet);
@@ -18,7 +19,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Get wallet by user
+// 🔍 Get wallet by user
 router.get('/:userId', async (req, res) => {
   try {
     const wallet = await Wallet.findOne({ userId: req.params.userId });
