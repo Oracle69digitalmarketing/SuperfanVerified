@@ -16,7 +16,9 @@
     "test:referrals": "node testReferrals.js",
     "test:verify": "node testVerify.js",
     "test:gated": "node testGatedContent.js",
-    "test:external": "node testExternalData.js"
+    "test:external": "node testExternalData.js",
+
+    "test:all": "npm run test:users && npm run test:scans && npm run test:leaderboard && npm run test:wallets && npm run test:referrals && npm run test:verify && npm run test:gated && npm run test:external"
   },
   "keywords": [],
   "author": "",
