@@ -1,11 +1,8 @@
-import Scan from '../models/Scan.js';
+// controllers/scanController.js
 import User from '../models/User.js';
-import redis from 'redis';
+import mongoose from 'mongoose';
 
-const client = redis.createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
-client.connect().catch(console.error);
-
-// 🧾 Add Scan
+// 🧾 Add a new scan + update streaks & tier
 export const addScan = async (req, res) => {
   try {
     const { userId, artist } = req.body;
@@ -13,92 +10,85 @@ export const addScan = async (req, res) => {
       return res.status(400).json({ error: 'userId and artist required' });
     }
 
-    const today = new Date().toISOString().slice(0, 10);
-    const source = req.headers['x-source'] || 'unknown';
-
-    // 1. Insert Scan record
-    const scan = new Scan({ userId, artist, source });
-    await scan.save();
-
-    // 2. Update User's play/scan count
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // Upsert leaderboard metric: we'll use fanStreak.current as proxy
-    user.fanStreak.current += 1;
-
-    // 3. Update streaks
-    const lastScan = user.fanStreak.lastScanDate
-      ? new Date(user.fanStreak.lastScanDate).toISOString().slice(0, 10)
+    const today = new Date().toISOString().slice(0, 10);
+    const lastScanDate = user.fanStreak.lastScanDate
+      ? user.fanStreak.lastScanDate.toISOString().slice(0, 10)
       : null;
 
-    if (lastScan) {
-      const diff =
-        (new Date(today) - new Date(lastScan)) / (1000 * 60 * 60 * 24);
-
-      if (diff === 1) {
-        user.fanStreak.current += 1;
-        user.fanStreak.longest = Math.max(user.fanStreak.current, user.fanStreak.longest);
-      } else if (diff > 1) {
-        user.fanStreak.current = 1;
-      }
-    } else {
+    // 🔥 Update streaks
+    if (!lastScanDate) {
       user.fanStreak.current = 1;
       user.fanStreak.longest = 1;
+    } else {
+      const diff =
+        (new Date(today) - new Date(lastScanDate)) / (1000 * 60 * 60 * 24);
+
+      if (diff === 1) {
+        // consecutive day
+        user.fanStreak.current += 1;
+        user.fanStreak.longest = Math.max(
+          user.fanStreak.current,
+          user.fanStreak.longest
+        );
+      } else if (diff > 1) {
+        // streak broken
+        user.fanStreak.current = 1;
+      }
     }
 
-    user.fanStreak.lastScanDate = today;
+    user.fanStreak.lastScanDate = new Date(today);
 
-    // 4. Update Fan Tier
-    const totalScans = await Scan.countDocuments({ userId });
-    const longestStreak = user.fanStreak.longest || 0;
+    // 🏆 Assign tier based on streaks & total scans
+    // (for Mongo, let’s just approximate with streaks)
+    if (user.fanStreak.longest >= 30) {
+      user.fanTier = 'Legend';
+    } else if (user.fanStreak.longest >= 14) {
+      user.fanTier = 'Gold';
+    } else if (user.fanStreak.longest >= 7) {
+      user.fanTier = 'Silver';
+    } else {
+      user.fanTier = 'Bronze';
+    }
 
-    let tier = 'Bronze';
-    if (totalScans >= 50 && longestStreak >= 7) tier = 'Silver';
-    if (totalScans >= 200 && longestStreak >= 14) tier = 'Gold';
-    if (totalScans >= 500 && longestStreak >= 30) tier = 'Legend';
-
-    user.fanTier = tier;
     await user.save();
 
-    // 5. Redis: invalidate + sync
-    await client.del('leaderboard_top_100');
-    await client.zIncrBy('leaderboard_global', 1, user._id.toString());
-
     res.json({
-      scan,
-      leaderboard: {
-        userId: user._id.toString(),
-        totalPlays: user.fanStreak.current,
+      message: 'Scan logged successfully',
+      user: {
+        id: user._id,
+        walletAddress: user.walletAddress,
+        fanStreak: user.fanStreak,
+        fanTier: user.fanTier,
       },
-      tier,
     });
-  } catch (err) {
-    console.error('addScan error:', err);
+  } catch (e) {
+    console.error('❌ addScan failed:', e);
     res.status(500).json({ error: 'addScan failed' });
   }
 };
 
-// 📋 List recent scans
+// 📋 Get latest scans (mocked for now, since we didn’t persist scans separately)
 export const listScans = async (_req, res) => {
   try {
-    const scans = await Scan.find()
-      .sort({ createdAt: -1 })
-      .limit(200)
-      .populate('userId', 'wallet_address name');
+    // For now, just return users sorted by last scan date
+    const users = await User.find()
+      .sort({ 'fanStreak.lastScanDate': -1 })
+      .limit(200);
 
-    const formatted = scans.map(s => ({
-      id: s._id,
-      userId: s.userId._id,
-      wallet_address: s.userId.wallet_address,
-      name: s.userId.name,
-      artist: s.artist,
-      createdAt: s.createdAt,
-    }));
-
-    res.json(formatted);
-  } catch (err) {
-    console.error('listScans error:', err);
+    res.json(
+      users.map((u) => ({
+        id: u._id,
+        walletAddress: u.walletAddress,
+        name: u.name,
+        fanStreak: u.fanStreak,
+        fanTier: u.fanTier,
+      }))
+    );
+  } catch (e) {
+    console.error('❌ listScans failed:', e);
     res.status(500).json({ error: 'listScans failed' });
   }
 };
