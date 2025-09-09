@@ -1,11 +1,15 @@
-const pool = require('../db');
-const redis = require('redis');
-const client = redis.createClient();
+import mongoose from 'mongoose';
+import redis from 'redis';
+import Activity from '../models/Activity.js';
+import User from '../models/User.js';
+import PlayEvent from '../models/PlayEvent.js';
 
-client.connect();
+// ⚡ Redis client
+const client = redis.createClient();
+await client.connect();
 
 // 🚀 Log a fan activity and award points
-exports.logActivity = async (req, res) => {
+const logActivity = async (req, res) => {
   try {
     const { userId, actionType, points = 0, source = 'unknown' } = req.body;
 
@@ -13,33 +17,30 @@ exports.logActivity = async (req, res) => {
       return res.status(400).json({ error: 'userId and actionType are required' });
     }
 
-    // 🧾 Insert activity record
-    const insertQuery = `
-      INSERT INTO fan_activity (user_id, action_type, points_awarded)
-      VALUES ($1, $2, $3)
-      RETURNING id, user_id, action_type, points_awarded, timestamp;
-    `;
-    const result = await pool.query(insertQuery, [userId, actionType, points]);
-    const activity = result.rows[0];
+    // 🧾 Save activity record in MongoDB
+    const activity = await Activity.create({
+      userId,
+      type: actionType,
+      points,
+      metadata: { source },
+    });
 
     // 🔁 Update user points
-    await pool.query(
-      `UPDATE users SET points = points + $1 WHERE id = $2`,
-      [points, userId]
-    );
+    await User.findByIdAndUpdate(userId, { $inc: { points } });
 
     // 📊 Log play event for analytics
-    await pool.query(
-      `INSERT INTO play_events (user_id, artist, delta, source)
-       VALUES ($1, $2, $3, $4)`,
-      [userId, actionType, points, source]
-    );
+    await PlayEvent.create({
+      userId,
+      artist: actionType,
+      delta: points,
+      source,
+    });
 
     // 🧊 Invalidate leaderboard cache
     await client.del('leaderboard_top_100');
 
     // ⚡ Update Redis leaderboard
-    await client.zincrby('leaderboard_global', points, userId.toString());
+    await client.zIncrBy('leaderboard_global', points, userId.toString());
 
     res.json({
       activity,
@@ -52,18 +53,22 @@ exports.logActivity = async (req, res) => {
 };
 
 // 📜 List recent fan activities
-exports.listActivities = async (_req, res) => {
+const listActivities = async (_req, res) => {
   try {
-    const { rows } = await pool.query(
-      `SELECT a.id, a.user_id, u.wallet_address, u.name, a.action_type, a.points_awarded, a.timestamp
-       FROM fan_activity a
-       JOIN users u ON u.id = a.user_id
-       ORDER BY a.timestamp DESC
-       LIMIT 200;`
-    );
-    res.json(rows);
+    const activities = await Activity.find()
+      .populate('userId', 'wallet_address name')
+      .sort({ createdAt: -1 })
+      .limit(200);
+
+    res.json(activities);
   } catch (err) {
     console.error('listActivities error:', err);
     res.status(500).json({ error: 'Failed to fetch activities' });
   }
+};
+
+// ✅ Export default controller object
+export default {
+  logActivity,
+  listActivities,
 };
