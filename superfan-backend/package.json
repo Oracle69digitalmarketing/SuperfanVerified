@@ -7,7 +7,8 @@
   "scripts": {
     "setup": "bash setup-backend.sh",
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "test:scans": "node testScans.js"
   },
   "keywords": [],
   "author": "",
