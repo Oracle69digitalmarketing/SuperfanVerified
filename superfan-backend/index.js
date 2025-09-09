@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 
 // Routers
 import usersRouter from './routes/users.js';
+import activityRoutes from './routes/activityRoutes.js'; // ← new import
 
 dotenv.config();
 
@@ -56,6 +57,11 @@ app.post('/verify', (req, res) => {
 // Users routes
 // ----------------------------
 app.use('/users', usersRouter); // all /users routes now live
+
+// ----------------------------
+// Activity routes
+// ----------------------------
+app.use('/activities', activityRoutes); // ← new route
 
 // ----------------------------
 // Start server
