@@ -1,16 +1,18 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const pool = require('./utils/db');
+import dotenv from 'dotenv';
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import mongoose from 'mongoose';
 
-// Route modules
-const userRoutes = require('./routes/userRoutes');
-const leaderboardRoutes = require('./routes/leaderboardRoutes');
-const scanRoutes = require('./routes/scanRoutes');
-const activityRoutes = require('./routes/activityRoutes');
-const referralRoutes = require('./routes/referralRoutes');
+// Route modules (must be ES modules with .js extension)
+import userRoutes from './routes/userRoutes.js';
+import leaderboardRoutes from './routes/leaderboardRoutes.js';
+import scanRoutes from './routes/scanRoutes.js';
+import activityRoutes from './routes/activityRoutes.js';
+import referralRoutes from './routes/referralRoutes.js';
+
+dotenv.config();
 
 const app = express();
 
@@ -21,7 +23,6 @@ app.use(helmet());
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
   : '*';
-
 app.use(cors({ origin: allowedOrigins.length ? allowedOrigins : true }));
 
 // 🧠 JSON parsing
@@ -48,17 +49,17 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// 🧨 Graceful shutdown
-process.on('SIGINT', () => {
-  console.log('🛑 Shutting down server...');
-  pool.end(() => {
-    console.log('✅ PostgreSQL pool closed');
-    process.exit(0);
-  });
-});
-
-// 🟢 Start server
+// 🟢 Start server after MongoDB connects
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Superfan backend running on port ${PORT}`);
-});
+
+mongoose
+  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`🚀 Superfan backend running on port ${PORT}`);
+    });
+  })
+  .catch(err => {
+    console.error('❌ MongoDB connection error:', err);
+    process.exit(1);
+  });
