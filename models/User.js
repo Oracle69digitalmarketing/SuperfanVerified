@@ -1,62 +1,61 @@
-const pool = require('../db');
-const redis = require('redis');
-const client = redis.createClient();
+import redis from 'redis';
+import User from '../models/User.js';
+import FanStreak from '../models/FanStreak.js';
+import FanTier from '../models/FanTier.js';
 
-client.connect();
+// ⚡ Redis client
+const client = redis.createClient();
+await client.connect();
 
 // 🧠 Create or fetch user with referral logic
 const createUser = async (username, email, referralCode) => {
   const referralCodeGenerated = username.slice(0, 3).toUpperCase() + Math.floor(1000 + Math.random() * 9000);
 
   // Check for existing user
-  const existing = await pool.query(
-    `SELECT * FROM users WHERE email = $1 OR username = $2`,
-    [email, username]
-  );
-  if (existing.rows.length > 0) return existing.rows[0];
+  let user = await User.findOne({ $or: [{ email }, { name: username }] });
+  if (user) return user;
 
   // Insert new user
-  const result = await pool.query(
-    `INSERT INTO users (username, email, referral_code, referred_by)
-     VALUES ($1, $2, $3, $4)
-     RETURNING *`,
-    [username, email, referralCodeGenerated, referralCode || null]
-  );
-  const user = result.rows[0];
+  user = await User.create({
+    name: username,
+    email,
+    referralCode: referralCodeGenerated,
+    referredBy: referralCode || null,
+    points: 0,
+  });
 
   // Initialize fan streaks
-  await pool.query(
-    `INSERT INTO fan_streaks (user_id, current_streak, longest_streak, last_scan_date)
-     VALUES ($1, 0, 0, NULL)`,
-    [user.id]
-  );
+  await FanStreak.create({
+    userId: user._id,
+    currentStreak: 0,
+    longestStreak: 0,
+    lastScanDate: null,
+  });
 
   // Initialize fan tier
-  await pool.query(
-    `INSERT INTO fan_tiers (user_id, tier)
-     VALUES ($1, 'Bronze')`,
-    [user.id]
-  );
+  await FanTier.create({
+    userId: user._id,
+    tier: 'Bronze',
+  });
 
   // Sync Redis leaderboard
-  await client.zadd('leaderboard_global', { score: 0, value: user.id.toString() });
+  await client.zAdd('leaderboard_global', { score: 0, value: user._id.toString() });
 
   return user;
 };
 
 // 📋 Get user by ID
 const getUserById = async (id) => {
-  const result = await pool.query(`SELECT * FROM users WHERE id = $1`, [id]);
-  return result.rows[0];
+  return await User.findById(id);
 };
 
 // 🔍 Get user by wallet address
 const getUserByWallet = async (walletAddress) => {
-  const result = await pool.query(`SELECT * FROM users WHERE wallet_address = $1`, [walletAddress]);
-  return result.rows[0];
+  return await User.findOne({ wallet_address: walletAddress });
 };
 
-module.exports = {
+// ✅ Default export
+export default {
   createUser,
   getUserById,
   getUserByWallet,
