@@ -1,6 +1,6 @@
-import express from 'express';
-import Activity from '../models/Activity.js';
-import redis from 'redis';
+const express = require('express');
+const Activity = require('../models/Activity');
+const redis = require('redis');
 
 const router = express.Router();
 
@@ -70,4 +70,4 @@ router.get('/leaderboard', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;
