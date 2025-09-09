@@ -1,10 +1,12 @@
-const pool = require('../db');
-const redis = require('redis');
-const client = redis.createClient();
+import Scan from '../models/Scan.js';
+import User from '../models/User.js';
+import redis from 'redis';
 
-client.connect();
+const client = redis.createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
+client.connect().catch(console.error);
 
-exports.addScan = async (req, res) => {
+// 🧾 Add Scan
+export const addScan = async (req, res) => {
   try {
     const { userId, artist } = req.body;
     if (!userId || !artist) {
@@ -14,106 +16,89 @@ exports.addScan = async (req, res) => {
     const today = new Date().toISOString().slice(0, 10);
     const source = req.headers['x-source'] || 'unknown';
 
-    // 🧾 Insert scan record
-    const insertScan = `
-      INSERT INTO scans (user_id, artist)
-      VALUES ($1, $2)
-      RETURNING id, user_id, artist, created_at;
-    `;
-    const scan = await pool.query(insertScan, [userId, artist]);
+    // 1. Insert Scan record
+    const scan = new Scan({ userId, artist, source });
+    await scan.save();
 
-    // 🔁 Upsert leaderboard entry
-    const upsertLeaderboard = `
-      INSERT INTO leaderboard (user_id, artist, total_plays, updated_at)
-      VALUES ($1, $2, 1, NOW())
-      ON CONFLICT (user_id, artist) DO UPDATE
-      SET total_plays = leaderboard.total_plays + 1,
-          updated_at = NOW()
-      RETURNING user_id, artist, total_plays, updated_at;
-    `;
-    const lb = await pool.query(upsertLeaderboard, [userId, artist]);
+    // 2. Update User's play/scan count
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // 📊 Log play event
-    await pool.query(
-      `INSERT INTO play_events (user_id, artist, delta, source)
-       VALUES ($1, $2, $3, $4)`,
-      [userId, artist, 1, source]
-    );
+    // Upsert leaderboard metric: we'll use fanStreak.current as proxy
+    user.fanStreak.current += 1;
 
-    // 🔥 Update streaks
-    const streakRes = await pool.query(`SELECT * FROM fan_streaks WHERE user_id = $1`, [userId]);
-    if (streakRes.rows.length === 0) {
-      await pool.query(`
-        INSERT INTO fan_streaks (user_id, current_streak, longest_streak, last_scan_date)
-        VALUES ($1, 1, 1, $2)
-      `, [userId, today]);
-    } else {
-      const { current_streak, longest_streak, last_scan_date } = streakRes.rows[0];
-      const diff = (new Date(today) - new Date(last_scan_date)) / (1000 * 60 * 60 * 24);
+    // 3. Update streaks
+    const lastScan = user.fanStreak.lastScanDate
+      ? new Date(user.fanStreak.lastScanDate).toISOString().slice(0, 10)
+      : null;
+
+    if (lastScan) {
+      const diff =
+        (new Date(today) - new Date(lastScan)) / (1000 * 60 * 60 * 24);
 
       if (diff === 1) {
-        const newStreak = current_streak + 1;
-        const newLongest = Math.max(newStreak, longest_streak);
-        await pool.query(`
-          UPDATE fan_streaks
-          SET current_streak = $1, longest_streak = $2, last_scan_date = $3
-          WHERE user_id = $4
-        `, [newStreak, newLongest, today, userId]);
+        user.fanStreak.current += 1;
+        user.fanStreak.longest = Math.max(user.fanStreak.current, user.fanStreak.longest);
       } else if (diff > 1) {
-        await pool.query(`
-          UPDATE fan_streaks
-          SET current_streak = 1, last_scan_date = $1
-          WHERE user_id = $2
-        `, [today, userId]);
+        user.fanStreak.current = 1;
       }
+    } else {
+      user.fanStreak.current = 1;
+      user.fanStreak.longest = 1;
     }
 
-    // 🏆 Assign fan tier
-    const totalScansRes = await pool.query(`SELECT COUNT(*) FROM scans WHERE user_id = $1`, [userId]);
-    const totalScans = parseInt(totalScansRes.rows[0].count, 10);
-    const streakData = await pool.query(`SELECT longest_streak FROM fan_streaks WHERE user_id = $1`, [userId]);
-    const longestStreak = streakData.rows[0]?.longest_streak || 0;
+    user.fanStreak.lastScanDate = today;
+
+    // 4. Update Fan Tier
+    const totalScans = await Scan.countDocuments({ userId });
+    const longestStreak = user.fanStreak.longest || 0;
 
     let tier = 'Bronze';
     if (totalScans >= 50 && longestStreak >= 7) tier = 'Silver';
     if (totalScans >= 200 && longestStreak >= 14) tier = 'Gold';
     if (totalScans >= 500 && longestStreak >= 30) tier = 'Legend';
 
-    await pool.query(`
-      INSERT INTO fan_tiers (user_id, tier)
-      VALUES ($1, $2)
-      ON CONFLICT (user_id) DO UPDATE SET tier = $2, updated_at = NOW()
-    `, [userId, tier]);
+    user.fanTier = tier;
+    await user.save();
 
-    // 🧊 Invalidate leaderboard cache
+    // 5. Redis: invalidate + sync
     await client.del('leaderboard_top_100');
-
-    // ⚡ Sync Redis leaderboard
-    await client.zincrby('leaderboard_global', 1, userId.toString());
+    await client.zIncrBy('leaderboard_global', 1, user._id.toString());
 
     res.json({
-      scan: scan.rows[0],
-      leaderboard: lb.rows[0],
+      scan,
+      leaderboard: {
+        userId: user._id.toString(),
+        totalPlays: user.fanStreak.current,
+      },
       tier,
     });
-  } catch (e) {
-    console.error(e);
+  } catch (err) {
+    console.error('addScan error:', err);
     res.status(500).json({ error: 'addScan failed' });
   }
 };
 
-exports.listScans = async (_req, res) => {
+// 📋 List recent scans
+export const listScans = async (_req, res) => {
   try {
-    const { rows } = await pool.query(
-      `SELECT s.id, s.user_id, u.wallet_address, u.name, s.artist, s.created_at
-       FROM scans s
-       JOIN users u ON u.id = s.user_id
-       ORDER BY s.created_at DESC
-       LIMIT 200;`
-    );
-    res.json(rows);
-  } catch (e) {
-    console.error(e);
+    const scans = await Scan.find()
+      .sort({ createdAt: -1 })
+      .limit(200)
+      .populate('userId', 'wallet_address name');
+
+    const formatted = scans.map(s => ({
+      id: s._id,
+      userId: s.userId._id,
+      wallet_address: s.userId.wallet_address,
+      name: s.userId.name,
+      artist: s.artist,
+      createdAt: s.createdAt,
+    }));
+
+    res.json(formatted);
+  } catch (err) {
+    console.error('listScans error:', err);
     res.status(500).json({ error: 'listScans failed' });
   }
 };
