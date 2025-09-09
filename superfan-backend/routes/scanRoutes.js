@@ -1,8 +1,6 @@
-const express = require('express');
-const {
-  addScan,
-  listScans
-} = require('../controllers/scanController');
+// backend/routes/scanRoutes.js
+import express from 'express';
+import { addScan, listScans } from '../controllers/scanController.js';
 
 const router = express.Router();
 
@@ -12,4 +10,4 @@ router.post('/', addScan);
 // 📋 List recent scans with user info
 router.get('/', listScans);
 
-module.exports = router;
+export default router;
