@@ -1,16 +1,18 @@
 // backend/index.js
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-require('dotenv').config();
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import dotenv from 'dotenv';
 
 // Routers
-const usersRouter = require('./routes/users');
-const activityRoutes = require('./routes/activityRoutes');
-const referralRoutes = require('./routes/referralRoutes');
-const walletRoutes = require('./routes/walletRoutes');
-const externalDataRoutes = require('./routes/externalDataRoutes');
-const gatedContentRoutes = require('./routes/gatedContentRoutes');
+import usersRouter from './routes/users.js';
+import activityRoutes from './routes/activityRoutes.js';
+import referralRoutes from './routes/referralRoutes.js';
+import walletRoutes from './routes/walletRoutes.js';
+import externalDataRoutes from './routes/externalDataRoutes.js';
+import gatedContentRoutes from './routes/gatedContentRoutes.js';
+
+dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -43,6 +45,7 @@ app.post('/verify', (req, res) => {
 
   console.log('Verification request:', rawData, wallet);
 
+  // Fake verification logic: rawData contains "fan"
   const verified = rawData && rawData.toLowerCase().includes('fan');
 
   res.json({
