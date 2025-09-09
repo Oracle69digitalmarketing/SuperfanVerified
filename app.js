@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const pool = require('./utils/db');
+const mongoose = require('mongoose');
 
 // Route modules
 const userRoutes = require('./routes/userRoutes');
@@ -49,16 +49,28 @@ app.use((err, _req, res, _next) => {
 });
 
 // 🧨 Graceful shutdown
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('🛑 Shutting down server...');
-  pool.end(() => {
-    console.log('✅ PostgreSQL pool closed');
-    process.exit(0);
-  });
+  await mongoose.connection.close();
+  console.log('✅ MongoDB connection closed');
+  process.exit(0);
 });
 
-// 🟢 Start server
+// 🟢 Start server (with DB connection)
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Superfan backend running on port ${PORT}`);
+const MONGO_URI = process.env.MONGO_URI;
+
+mongoose.connect(MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => {
+  console.log('✅ Connected to MongoDB');
+  app.listen(PORT, () => {
+    console.log(`🚀 Superfan backend running on port ${PORT}`);
+  });
+})
+.catch(err => {
+  console.error('❌ MongoDB connection error:', err);
+  process.exit(1);
 });
