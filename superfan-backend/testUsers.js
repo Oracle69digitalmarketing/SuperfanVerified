@@ -1,31 +1,22 @@
-// testUsers.js
-import fetch from 'node-fetch';
+import fetch from "node-fetch";
 
-const BASE = 'http://localhost:3000'; // adjust port if different
+const BASE = "https://superfan-backend.onrender.com";
 
-// 🔐 Create user test
-async function testCreateUser() {
-  const res = await fetch(`${BASE}/api/users`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+async function testUsers() {
+  console.log("\n=== USERS ===");
+  const createRes = await fetch(`${BASE}/users`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      walletAddress: '0xTESTUSER123456',
-      name: 'Test User',
-      referredBy: null
-    })
+      walletAddress: "0xABC123",
+      name: "Test User",
+      referredBy: null,
+    }),
   });
-  const data = await res.json();
-  console.log('Create User →', data);
+  console.log("Create User:", await createRes.json());
+
+  const listRes = await fetch(`${BASE}/users`);
+  console.log("List Users:", await listRes.json());
 }
 
-// 📋 List users test
-async function testListUsers() {
-  const res = await fetch(`${BASE}/api/users`);
-  const data = await res.json();
-  console.log('List Users →', data.slice(0, 3));
-}
-
-(async () => {
-  await testCreateUser();
-  await testListUsers();
-})();
+testUsers().catch(console.error);
