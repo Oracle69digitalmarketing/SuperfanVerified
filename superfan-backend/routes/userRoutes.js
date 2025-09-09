@@ -1,8 +1,6 @@
-const express = require('express');
-const {
-  createUser,
-  listUsers
-} = require('../controllers/userController');
+// backend/routes/users.js
+import express from 'express';
+import { createUser, listUsers } from '../controllers/userController.js';
 
 const router = express.Router();
 
@@ -12,4 +10,4 @@ router.post('/', createUser);
 // 📋 List recent users with referral metadata
 router.get('/', listUsers);
 
-module.exports = router;
+export default router;
