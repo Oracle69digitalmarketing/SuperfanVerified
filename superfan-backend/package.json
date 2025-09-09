@@ -8,7 +8,10 @@
     "setup": "bash setup-backend.sh",
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "test:scans": "node testScans.js"
+    "test:scans": "node testScans.js",
+    "test:users": "node testUsers.js",
+    "test:leaderboard": "node testLeaderboard.js",
+    "test:all": "npm run test:scans && npm run test:users && npm run test:leaderboard"
   },
   "keywords": [],
   "author": "",
