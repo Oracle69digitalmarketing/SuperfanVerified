@@ -1,17 +1,22 @@
-const express = require('express');
-const Activity = require('../models/Activity');
-const redis = require('redis');
+// backend/routes/activityRoutes.js
+import express from 'express';
+import Activity from '../models/Activity.js';
+import redis from 'redis';
 
 const router = express.Router();
 
 // Connect to Redis
-const client = redis.createClient();
+const client = redis.createClient({
+  url: process.env.REDIS_URL || 'redis://localhost:6379',
+});
 client.connect().catch(err => console.error('Redis connection error:', err));
 
 // Redis key for global activity leaderboard
 const REDIS_LEADERBOARD_KEY = 'leaderboard_activities';
 
+// ----------------------------
 // GET all activities
+// ----------------------------
 router.get('/', async (req, res) => {
   try {
     const activities = await Activity.find().sort({ createdAt: -1 });
@@ -22,7 +27,9 @@ router.get('/', async (req, res) => {
   }
 });
 
+// ----------------------------
 // POST create a new activity
+// ----------------------------
 router.post('/', async (req, res) => {
   try {
     const { name, description } = req.body;
@@ -34,7 +41,7 @@ router.post('/', async (req, res) => {
     // Initialize in Redis leaderboard
     await client.zAdd(REDIS_LEADERBOARD_KEY, {
       score: 0,
-      value: activity._id.toString()
+      value: activity._id.toString(),
     });
 
     res.status(201).json(activity);
@@ -44,13 +51,18 @@ router.post('/', async (req, res) => {
   }
 });
 
+// ----------------------------
 // POST increment activity score
+// ----------------------------
 router.post('/:id/score', async (req, res) => {
   try {
     const { increment = 1 } = req.body;
 
-    // Increment activity score in Redis
-    const newScore = await client.zIncrBy(REDIS_LEADERBOARD_KEY, increment, req.params.id);
+    const newScore = await client.zIncrBy(
+      REDIS_LEADERBOARD_KEY,
+      increment,
+      req.params.id
+    );
 
     res.json({ activityId: req.params.id, newScore });
   } catch (err) {
@@ -59,10 +71,17 @@ router.post('/:id/score', async (req, res) => {
   }
 });
 
+// ----------------------------
 // GET top activities leaderboard
+// ----------------------------
 router.get('/leaderboard', async (req, res) => {
   try {
-    const topActivities = await client.zRangeWithScores(REDIS_LEADERBOARD_KEY, 0, -1, { REV: true });
+    const topActivities = await client.zRangeWithScores(
+      REDIS_LEADERBOARD_KEY,
+      0,
+      -1,
+      { REV: true }
+    );
     res.json(topActivities);
   } catch (err) {
     console.error('Get leaderboard error:', err);
@@ -70,4 +89,4 @@ router.get('/leaderboard', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
