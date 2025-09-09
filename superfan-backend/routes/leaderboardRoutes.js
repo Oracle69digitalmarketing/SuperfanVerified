@@ -1,19 +1,26 @@
-const express = require('express');
-const {
+// backend/routes/leaderboardRoutes.js
+import express from 'express';
+import {
   getLeaderboard,
   getRedisLeaderboard,
   upsertPlays
-} = require('../controllers/leaderboardController');
+} from '../controllers/leaderboardController.js';
 
 const router = express.Router();
 
-// 🧊 Get top leaderboard from database
+// ----------------------------
+// GET: Top leaderboard from database
+// ----------------------------
 router.get('/', getLeaderboard);
 
-// ⚡ Get real-time leaderboard from Redis
+// ----------------------------
+// GET: Real-time leaderboard from Redis
+// ----------------------------
 router.get('/redis', getRedisLeaderboard);
 
-// 🔁 Upsert play count for a user-artist pair
+// ----------------------------
+// POST: Upsert play count for user-artist pair
+// ----------------------------
 router.post('/plays', upsertPlays);
 
-module.exports = router;
+export default router;
