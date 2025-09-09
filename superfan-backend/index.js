@@ -6,7 +6,11 @@ require('dotenv').config();
 
 // Routers
 const usersRouter = require('./routes/users');
-const activityRoutes = require('./routes/activityRoutes'); // ← new route
+const activityRoutes = require('./routes/activityRoutes');
+const referralRoutes = require('./routes/referralRoutes');
+const walletRoutes = require('./routes/walletRoutes');
+const externalDataRoutes = require('./routes/externalDataRoutes');
+const gatedContentRoutes = require('./routes/gatedContentRoutes');
 
 const app = express();
 app.use(cors());
@@ -39,7 +43,6 @@ app.post('/verify', (req, res) => {
 
   console.log('Verification request:', rawData, wallet);
 
-  // Fake check: if QR contains "fan", mark verified
   const verified = rawData && rawData.toLowerCase().includes('fan');
 
   res.json({
@@ -52,14 +55,14 @@ app.post('/verify', (req, res) => {
 });
 
 // ----------------------------
-// Users routes
+// Routes
 // ----------------------------
 app.use('/users', usersRouter);
-
-// ----------------------------
-// Activity routes
-// ----------------------------
 app.use('/activities', activityRoutes);
+app.use('/referrals', referralRoutes);
+app.use('/wallets', walletRoutes);
+app.use('/external-data', externalDataRoutes);
+app.use('/gated-content', gatedContentRoutes);
 
 // ----------------------------
 // Start server
