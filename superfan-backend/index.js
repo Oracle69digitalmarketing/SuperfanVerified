@@ -1,73 +1,28 @@
-// backend/index.js
 import express from 'express';
 import mongoose from 'mongoose';
-import cors from 'cors';
 import dotenv from 'dotenv';
+import cors from 'cors';
 
-// Routers
-import usersRouter from './routes/users.js';
-import activityRoutes from './routes/activityRoutes.js';
-import referralRoutes from './routes/referralRoutes.js';
-import walletRoutes from './routes/walletRoutes.js';
-import externalDataRoutes from './routes/externalDataRoutes.js';
-import gatedContentRoutes from './routes/gatedContentRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import leaderboardRoutes from './routes/leaderboardRoutes.js';
+import scanRoutes from './routes/scanRoutes.js'; // 👈 new import
 
 dotenv.config();
-
 const app = express();
+
 app.use(cors());
-app.use(express.json()); // replaces body-parser
+app.use(express.json());
+
+// ✅ Register routes
+app.use('/api/users', userRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/scans', scanRoutes); // 👈 new line
+
+// MongoDB connection
+mongoose
+  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch((err) => console.error('❌ MongoDB connection failed:', err));
 
 const PORT = process.env.PORT || 5000;
-
-// ----------------------------
-// MongoDB connection
-// ----------------------------
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('✅ MongoDB connected'))
-.catch(err => console.error('❌ MongoDB connection error:', err));
-
-// ----------------------------
-// Health check
-// ----------------------------
-app.get('/', (req, res) => {
-  res.send({ message: '✅ SuperfanVerified backend running' });
-});
-
-// ----------------------------
-// Verification endpoint
-// ----------------------------
-app.post('/verify', (req, res) => {
-  const { rawData, wallet } = req.body;
-
-  console.log('Verification request:', rawData, wallet);
-
-  // Fake verification logic: rawData contains "fan"
-  const verified = rawData && rawData.toLowerCase().includes('fan');
-
-  res.json({
-    success: true,
-    verified,
-    fanId: rawData,
-    wallet,
-    message: verified ? 'Fan verified successfully' : 'Not a valid fan QR',
-  });
-});
-
-// ----------------------------
-// Routes
-// ----------------------------
-app.use('/users', usersRouter);
-app.use('/activities', activityRoutes);
-app.use('/referrals', referralRoutes);
-app.use('/wallets', walletRoutes);
-app.use('/external-data', externalDataRoutes);
-app.use('/gated-content', gatedContentRoutes);
-
-// ----------------------------
-// Start server
-// ----------------------------
-app.listen(PORT, () => console.log(`🚀 Backend running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
