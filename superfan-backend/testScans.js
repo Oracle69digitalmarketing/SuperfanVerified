@@ -1,36 +1,22 @@
-import axios from 'axios';
+import fetch from "node-fetch";
 
-const API = 'http://localhost:5000/api/scans'; // adjust if deployed
+const BASE = "https://superfan-backend.onrender.com";
 
-// 🔥 Test 1: Add a new scan
-async function addScan() {
-  try {
-    const res = await axios.post(API, {
-      userId: 1,        // replace with valid user ID
-      artist: 'Drake', // test artist
-    }, {
-      headers: { 'x-source': 'test-script' }
-    });
+async function testScans() {
+  // Add scan
+  const scanRes = await fetch(`${BASE}/scans`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: 1,
+      artist: "Test Artist",
+    }),
+  });
+  console.log("Add Scan:", await scanRes.json());
 
-    console.log('✅ Scan added:', res.data);
-  } catch (err) {
-    console.error('❌ Error adding scan:', err.response?.data || err.message);
-  }
+  // List scans
+  const listRes = await fetch(`${BASE}/scans`);
+  console.log("List Scans:", await listRes.json());
 }
 
-// 🔍 Test 2: Fetch recent scans
-async function listScans() {
-  try {
-    const res = await axios.get(API);
-    console.log('✅ Recent scans:', res.data.slice(0, 3)); // show first 3
-  } catch (err) {
-    console.error('❌ Error fetching scans:', err.response?.data || err.message);
-  }
-}
-
-async function run() {
-  await addScan();
-  await listScans();
-}
-
-run();
+testScans();
