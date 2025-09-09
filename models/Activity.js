@@ -10,5 +10,4 @@ const activitySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ✅ Export default
 export default mongoose.model('Activity', activitySchema);
