@@ -8,10 +8,15 @@
     "setup": "bash setup-backend.sh",
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "test:scans": "node testScans.js",
+
     "test:users": "node testUsers.js",
+    "test:scans": "node testScans.js",
     "test:leaderboard": "node testLeaderboard.js",
-    "test:all": "npm run test:scans && npm run test:users && npm run test:leaderboard"
+    "test:wallets": "node testWallets.js",
+    "test:referrals": "node testReferrals.js",
+    "test:verify": "node testVerify.js",
+    "test:gated": "node testGatedContent.js",
+    "test:external": "node testExternalData.js"
   },
   "keywords": [],
   "author": "",
