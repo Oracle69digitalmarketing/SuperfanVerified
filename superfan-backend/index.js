@@ -2,10 +2,11 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import { createClient } from 'redis'; // ✅ Redis import
 
 import userRoutes from './routes/userRoutes.js';
 import leaderboardRoutes from './routes/leaderboardRoutes.js';
-import scanRoutes from './routes/scanRoutes.js'; // 👈 new import
+import scanRoutes from './routes/scanRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -13,12 +14,34 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ✅ Redis setup
+const redisClient = createClient(); // defaults to localhost:6379
+
+redisClient.on('error', (err) => console.error('❌ Redis Client Error:', err));
+
+async function connectRedis() {
+  try {
+    await redisClient.connect();
+    console.log('✅ Redis connected');
+  } catch (err) {
+    console.error('❌ Redis connection failed:', err);
+  }
+}
+connectRedis();
+
 // ✅ Register routes
 app.use('/api/users', userRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
-app.use('/api/scans', scanRoutes); // 👈 new line
+app.use('/api/scans', scanRoutes);
 
-// MongoDB connection
+// ✅ Redis test route
+app.get('/api/cache-test', async (req, res) => {
+  await redisClient.set('greeting', 'Hello Prince');
+  const value = await redisClient.get('greeting');
+  res.send({ message: value });
+});
+
+// ✅ MongoDB connection
 mongoose
   .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('✅ MongoDB connected'))
