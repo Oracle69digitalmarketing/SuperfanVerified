@@ -4,8 +4,9 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
+import { createClient } from 'redis';
 
-// Route modules (must be ES modules with .js extension)
+// Route modules
 import userRoutes from './routes/userRoutes.js';
 import leaderboardRoutes from './routes/leaderboardRoutes.js';
 import scanRoutes from './routes/scanRoutes.js';
@@ -31,17 +32,41 @@ app.use(express.json());
 // 📋 Request logging
 app.use(morgan('dev'));
 
+// ✅ Redis setup
+const redisClient = createClient({
+  url: process.env.REDIS_URL || 'redis://localhost:6379',
+});
+
+redisClient.on('error', (err) => console.error('❌ Redis Client Error:', err));
+
+async function connectRedis() {
+  try {
+    await redisClient.connect();
+    console.log('✅ Redis connected');
+  } catch (err) {
+    console.error('❌ Redis connection failed:', err);
+  }
+}
+connectRedis();
+
+// ✅ Redis test route
+app.get('/api/cache-test', async (req, res) => {
+  await redisClient.set('greeting', 'Hello Prince');
+  const value = await redisClient.get('greeting');
+  res.send({ message: value });
+});
+
 // 🩺 Health check
 app.get('/health', (_req, res) => {
   res.json({ ok: true, ts: new Date().toISOString() });
 });
 
 // 🚀 API routes
-app.use('/users', userRoutes);
-app.use('/leaderboard', leaderboardRoutes);
-app.use('/scan', scanRoutes);
-app.use('/activity', activityRoutes);
-app.use('/referrals', referralRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/scans', scanRoutes);
+app.use('/api/activities', activityRoutes);
+app.use('/api/referrals', referralRoutes);
 
 // ❌ Error handler
 app.use((err, _req, res, _next) => {
@@ -50,7 +75,7 @@ app.use((err, _req, res, _next) => {
 });
 
 // 🟢 Start server after MongoDB connects
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 mongoose
   .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
