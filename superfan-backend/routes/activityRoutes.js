@@ -1,6 +1,6 @@
 import express from 'express';
 import Activity from '../models/Activity.js';
-import redisClient from '../utils/redisClient.js'; // ✅ Centralized Redis import
+// import redisClient from '../utils/redisClient.js'; // ❌ Redis removed
 
 const router = express.Router();
 
@@ -31,11 +31,13 @@ router.post('/', async (req, res) => {
     const activity = new Activity({ name, description });
     await activity.save();
 
-    // Initialize in Redis leaderboard
+    // Redis leaderboard logic (disabled)
+    /*
     await redisClient.zAdd(REDIS_LEADERBOARD_KEY, {
       score: 0,
       value: activity._id.toString(),
     });
+    */
 
     res.status(201).json(activity);
   } catch (err) {
@@ -51,13 +53,17 @@ router.post('/:id/score', async (req, res) => {
   try {
     const { increment = 1 } = req.body;
 
+    // Redis score increment logic (disabled)
+    /*
     const newScore = await redisClient.zIncrBy(
       REDIS_LEADERBOARD_KEY,
       increment,
       req.params.id
     );
-
     res.json({ activityId: req.params.id, newScore });
+    */
+
+    res.json({ activityId: req.params.id, newScore: `+${increment}` });
   } catch (err) {
     console.error('Increment activity score error:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -69,6 +75,8 @@ router.post('/:id/score', async (req, res) => {
 // ----------------------------
 router.get('/leaderboard', async (req, res) => {
   try {
+    // Redis leaderboard fetch logic (disabled)
+    /*
     const topActivities = await redisClient.zRangeWithScores(
       REDIS_LEADERBOARD_KEY,
       0,
@@ -76,6 +84,9 @@ router.get('/leaderboard', async (req, res) => {
       { REV: true }
     );
     res.json(topActivities);
+    */
+
+    res.json({ message: 'Leaderboard temporarily disabled (Redis removed)' });
   } catch (err) {
     console.error('Get leaderboard error:', err);
     res.status(500).json({ error: 'Internal server error' });
