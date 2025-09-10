@@ -2,11 +2,12 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import { createClient } from 'redis'; // ✅ Redis import
+import { createClient } from 'redis';
 
 import userRoutes from './routes/userRoutes.js';
 import leaderboardRoutes from './routes/leaderboardRoutes.js';
 import scanRoutes from './routes/scanRoutes.js';
+import activityRoutes from './routes/activityRoutes.js'; // ✅ Added
 
 dotenv.config();
 const app = express();
@@ -15,7 +16,9 @@ app.use(cors());
 app.use(express.json());
 
 // ✅ Redis setup
-const redisClient = createClient(); // defaults to localhost:6379
+const redisClient = createClient({
+  url: process.env.REDIS_URL || 'redis://localhost:6379',
+});
 
 redisClient.on('error', (err) => console.error('❌ Redis Client Error:', err));
 
@@ -33,6 +36,7 @@ connectRedis();
 app.use('/api/users', userRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/scans', scanRoutes);
+app.use('/api/activities', activityRoutes); // ✅ Registered
 
 // ✅ Redis test route
 app.get('/api/cache-test', async (req, res) => {
