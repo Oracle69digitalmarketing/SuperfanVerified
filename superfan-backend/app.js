@@ -4,7 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
-import { createClient } from 'redis';
+// import { createClient } from 'redis'; // 🔒 Redis disabled
 
 // Route modules
 import userRoutes from './routes/userRoutes.js';
@@ -32,7 +32,8 @@ app.use(express.json());
 // 📋 Request logging
 app.use(morgan('dev'));
 
-// ✅ Redis setup
+// 🔒 Redis setup disabled
+/*
 const redisClient = createClient({
   url: process.env.REDIS_URL || 'redis://localhost:6379',
 });
@@ -48,13 +49,16 @@ async function connectRedis() {
   }
 }
 connectRedis();
+*/
 
-// ✅ Redis test route
+// 🔒 Redis test route disabled
+/*
 app.get('/api/cache-test', async (req, res) => {
   await redisClient.set('greeting', 'Hello Prince');
   const value = await redisClient.get('greeting');
   res.send({ message: value });
 });
+*/
 
 // 🩺 Health check
 app.get('/health', (_req, res) => {
