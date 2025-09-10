@@ -8,7 +8,6 @@
     "setup": "bash setup-backend.sh",
     "start": "node app.js",
     "dev": "nodemon app.js",
-
     "test:users": "node testUsers.js",
     "test:scans": "node testScans.js",
     "test:leaderboard": "node testLeaderboard.js",
@@ -17,7 +16,6 @@
     "test:verify": "node testVerify.js",
     "test:gated": "node testGatedContent.js",
     "test:external": "node testExternalData.js",
-
     "test:all": "npm run test:users && npm run test:scans && npm run test:leaderboard && npm run test:wallets && npm run test:referrals && npm run test:verify && npm run test:gated && npm run test:external"
   },
   "keywords": [],
@@ -30,7 +28,7 @@
     "helmet": "^8.1.0",
     "mongoose": "^8.18.1",
     "morgan": "^1.10.1",
-    "pg": "^8.16.3",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
