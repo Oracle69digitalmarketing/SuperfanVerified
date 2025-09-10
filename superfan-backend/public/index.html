@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Superfan Backend Status</title>
+  <style>
+    :root {
+      --primary-color: #0078D7;
+      --background-color: #f9f9fb;
+      --text-color: #333;
+      --status-bg: #e6f0ff;
+      --status-border: #0078D7;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 600px;
+      padding: 40px;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border-radius: 12px;
+    }
+
+    h1 {
+      font-size: 2.2em;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 1.1em;
+      margin-bottom: 30px;
+    }
+
+    .status-box {
+      background-color: var(--status-bg);
+      border: 1px solid var(--status-border);
+      border-radius: 8px;
+      padding: 20px;
+      font-size: 1em;
+      line-height: 1.6;
+    }
+
+    a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎉 Superfan Backend Is Live</h1>
+    <p>Welcome, Prince. Your backend is running smoothly as of:</p>
+    <div class="status-box">
+      <strong>🕒 Wednesday, 10 September 2025 — 17:53 WAT</strong><br />
+      <strong>🌐 Server URL:</strong> <a href="https://superfan-backend.onrender.com" target="_blank">superfan-backend.onrender.com</a><br />
+      <strong>📡 Status:</strong> Connected to MongoDB & Ready to Serve
+    </div>
+  </div>
+</body>
+</html>
