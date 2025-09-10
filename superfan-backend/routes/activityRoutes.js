@@ -1,15 +1,8 @@
-// backend/routes/activityRoutes.js
 import express from 'express';
 import Activity from '../models/Activity.js';
-import redis from 'redis';
+import redisClient from '../utils/redisClient.js'; // ✅ Centralized Redis import
 
 const router = express.Router();
-
-// Connect to Redis
-const client = redis.createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379',
-});
-client.connect().catch(err => console.error('Redis connection error:', err));
 
 // Redis key for global activity leaderboard
 const REDIS_LEADERBOARD_KEY = 'leaderboard_activities';
@@ -39,7 +32,7 @@ router.post('/', async (req, res) => {
     await activity.save();
 
     // Initialize in Redis leaderboard
-    await client.zAdd(REDIS_LEADERBOARD_KEY, {
+    await redisClient.zAdd(REDIS_LEADERBOARD_KEY, {
       score: 0,
       value: activity._id.toString(),
     });
@@ -58,7 +51,7 @@ router.post('/:id/score', async (req, res) => {
   try {
     const { increment = 1 } = req.body;
 
-    const newScore = await client.zIncrBy(
+    const newScore = await redisClient.zIncrBy(
       REDIS_LEADERBOARD_KEY,
       increment,
       req.params.id
@@ -76,7 +69,7 @@ router.post('/:id/score', async (req, res) => {
 // ----------------------------
 router.get('/leaderboard', async (req, res) => {
   try {
-    const topActivities = await client.zRangeWithScores(
+    const topActivities = await redisClient.zRangeWithScores(
       REDIS_LEADERBOARD_KEY,
       0,
       -1,
