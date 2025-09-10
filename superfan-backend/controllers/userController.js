@@ -1,8 +1,8 @@
 import User from '../models/User.js';
-import redis from 'redis';
+// import redis from 'redis'; // 🔒 Redis disabled
 
-const client = redis.createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
-client.connect().catch(console.error);
+// const client = redis.createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
+// client.connect().catch(console.error);
 
 // 🧑 Create or update user with referral logic
 export const createUser = async (req, res) => {
@@ -33,8 +33,8 @@ export const createUser = async (req, res) => {
         tier: 'Bronze'
       });
 
-      // 🏆 Sync Redis leaderboard
-      await client.zAdd('leaderboard_global', { score: 0, value: user._id.toString() });
+      // 🏆 Sync Redis leaderboard (disabled)
+      // await client.zAdd('leaderboard_global', { score: 0, value: user._id.toString() });
     } else {
       // Optional: update name if passed
       if (name) user.name = name;
