@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import * as SQLite from 'expo-sqlite';
-import { WalletContext } from '../providers/WalletProvider'; // Adjust path as needed
+import { WalletContext } from '../providers/WalletProvider';
+import Constants from 'expo-constants';
 
 const db = SQLite.openDatabase('my-database.db');
+const API_URL = Constants.expoConfig?.extra?.apiUrl;
 
 const LeaderboardScreen = () => {
   const [leaderboard, setLeaderboard] = useState([]);
@@ -11,52 +13,80 @@ const LeaderboardScreen = () => {
   const walletAddress = wallet?.accounts?.[0];
 
   useEffect(() => {
-    db.transaction(tx => {
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS votes (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          user_id INTEGER,
-          proposal_id TEXT,
-          voted_at TEXT
-        );`
-      );
+    const loadLocalLeaderboard = () => {
+      db.transaction(tx => {
+        tx.executeSql(
+          `CREATE TABLE IF NOT EXISTS votes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            proposal_id TEXT,
+            voted_at TEXT
+          );`
+        );
 
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS scans (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          raw_data TEXT,
-          scanned_at TEXT
-        );`
-      );
+        tx.executeSql(
+          `CREATE TABLE IF NOT EXISTS scans (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            raw_data TEXT,
+            scanned_at TEXT
+          );`
+        );
 
-      tx.executeSql(
-        `
-        SELECT 
-          users.id,
-          users.wallet_address,
-          users.chain_id,
-          COUNT(DISTINCT scans.id) AS scanCount,
-          (
-            SELECT COUNT(*) FROM votes WHERE votes.user_id = users.id
-          ) AS voteCount
-        FROM users
-        LEFT JOIN scans ON scans.raw_data LIKE '%' || users.wallet_address || '%'
-        GROUP BY users.id;
-        `,
-        [],
-        (_, { rows }) => {
-          const data = rows._array.map(user => ({
-            ...user,
-            points: user.scanCount + 5 + (user.voteCount * 2),
-          })).sort((a, b) => b.points - a.points);
+        tx.executeSql(
+          `
+          SELECT 
+            users.id,
+            users.wallet_address,
+            users.chain_id,
+            COUNT(DISTINCT scans.id) AS scanCount,
+            (
+              SELECT COUNT(*) FROM votes WHERE votes.user_id = users.id
+            ) AS voteCount
+          FROM users
+          LEFT JOIN scans ON scans.raw_data LIKE '%' || users.wallet_address || '%'
+          GROUP BY users.id;
+          `,
+          [],
+          (_, { rows }) => {
+            const localData = rows._array.map(user => ({
+              id: user.id,
+              wallet_address: user.wallet_address,
+              chain_id: user.chain_id,
+              scanCount: user.scanCount,
+              voteCount: user.voteCount,
+              points: user.scanCount + 5 + (user.voteCount * 2),
+              source: 'local',
+            }));
+            setLeaderboard(prev => [...prev, ...localData]);
+          },
+          (_, error) => {
+            console.error('SQLite leaderboard query error:', error);
+          }
+        );
+      });
+    };
 
-          setLeaderboard(data);
-        },
-        (_, error) => {
-          console.error('Leaderboard query error:', error);
-        }
-      );
-    });
+    const loadSuperfanScores = async () => {
+      try {
+        const res = await fetch(`${API_URL}/leaderboard/superfan-top`);
+        const scores = await res.json();
+
+        const formatted = scores.map((entry, index) => ({
+          id: `sf-${index}`,
+          wallet_address: entry.walletAddress,
+          artist: entry.artist,
+          points: entry.score,
+          source: 'superfan',
+        }));
+
+        setLeaderboard(prev => [...formatted, ...prev]);
+      } catch (err) {
+        console.error('Superfan leaderboard fetch failed:', err);
+      }
+    };
+
+    loadLocalLeaderboard();
+    loadSuperfanScores();
   }, []);
 
   const renderItem = ({ item, index }) => {
@@ -68,19 +98,23 @@ const LeaderboardScreen = () => {
           <Text style={styles.name}>{item.wallet_address || 'Unnamed Fan'}</Text>
           <Text style={styles.points}>Points: {item.points}</Text>
           <Text style={styles.breakdown}>
-            Scans: {item.scanCount} | Votes: {item.voteCount} | Chain: {item.chain_id}
+            {item.source === 'superfan'
+              ? `Artist: ${item.artist}`
+              : `Scans: ${item.scanCount} | Votes: ${item.voteCount} | Chain: ${item.chain_id}`}
           </Text>
         </View>
       </View>
     );
   };
 
+  const sortedLeaderboard = leaderboard.sort((a, b) => b.points - a.points);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🏆 Fan Leaderboard</Text>
       {walletAddress && <Text style={styles.meta}>Your Wallet: {walletAddress}</Text>}
       <FlatList
-        data={leaderboard}
+        data={sortedLeaderboard}
         keyExtractor={item => item.id.toString()}
         renderItem={renderItem}
       />
