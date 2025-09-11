@@ -7,7 +7,7 @@ import { Buffer } from 'buffer';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const { spotifyClientId, spotifyClientSecret } = Constants.manifest.extra;
+const { spotifyClientId, spotifyClientSecret, backendUrl, walletAddress } = Constants.manifest.extra;
 
 const discovery = {
   authorizationEndpoint: 'https://accounts.spotify.com/authorize',
@@ -15,7 +15,7 @@ const discovery = {
 };
 
 interface SpotifyAuthProps {
-  onVerified: (artistName: string, fullData: any) => void;
+  onVerified: (artistName: string, fullData: any, proof: any, txHash: string) => void;
 }
 
 const SpotifyAuth: React.FC<SpotifyAuthProps> = ({ onVerified }) => {
@@ -85,7 +85,22 @@ const SpotifyAuth: React.FC<SpotifyAuthProps> = ({ onVerified }) => {
       if (data.items && data.items.length > 0) {
         const topArtistName = data.items[0].name;
         Alert.alert('Top Artist Found', `Your top artist is: ${topArtistName}`);
-        onVerified(topArtistName, data);
+
+        // 🔐 Trigger zkTLS proof generation
+        const proofResponse = await fetch(`${backendUrl}/generate-proof`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            walletAddress,
+            topArtists: data.items.map((artist: any) => artist.name),
+            targetArtist: topArtistName,
+          }),
+        });
+
+        const { proof, txHash } = await proofResponse.json();
+
+        // 🔗 Pass everything back to parent
+        onVerified(topArtistName, data, proof, txHash);
       } else {
         Alert.alert('No Top Artist', 'Could not find a top artist. You may need to listen to music first.');
       }
