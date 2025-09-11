@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 // import redis from 'redis'; // 🔒 Redis disabled
+import SuperfanScore from '../models/SuperfanScore.js'; // 🆕 New model
 
 // const client = redis.createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
 // client.connect().catch(console.error);
@@ -72,5 +73,43 @@ export const getRedisLeaderboard = async (_req, res) => {
   } catch (err) {
     console.error('getRedisLeaderboard error:', err);
     res.status(500).json({ error: 'getRedisLeaderboard failed' });
+  }
+};
+
+// 🆕 Submit Superfan Score (zkTLS-based)
+export const submitSuperfanScore = async (req, res) => {
+  try {
+    const { walletAddress, artist, score, proof, txHash } = req.body;
+
+    if (!walletAddress || !artist || typeof score !== 'number')
+      return res.status(400).json({ error: 'walletAddress, artist, and score are required' });
+
+    const entry = new SuperfanScore({
+      walletAddress,
+      artist,
+      score,
+      proof,
+      txHash,
+    });
+
+    await entry.save();
+    res.json({ success: true, entry });
+  } catch (err) {
+    console.error('submitSuperfanScore error:', err);
+    res.status(500).json({ error: 'submitSuperfanScore failed' });
+  }
+};
+
+// 🆕 Get Top Superfan Scores
+export const getSuperfanScores = async (_req, res) => {
+  try {
+    const scores = await SuperfanScore.find()
+      .sort({ score: -1, createdAt: -1 })
+      .limit(100);
+
+    res.json(scores);
+  } catch (err) {
+    console.error('getSuperfanScores error:', err);
+    res.status(500).json({ error: 'getSuperfanScores failed' });
   }
 };
