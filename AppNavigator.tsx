@@ -18,6 +18,10 @@ import EventCheckInScreen from './screens/EventCheckInScreen';
 import StakingScreen from './screens/StakingScreen';
 import GovernanceScreen from './screens/GovernanceScreen';
 
+// 🆕 Checkpoint 2 Screens
+import VerificationScreen from './screens/VerificationScreen';
+import ScoreScreen from './screens/ScoreScreen';
+
 const linking = {
   prefixes: ['superfanverified://'],
   config: {
@@ -34,6 +38,8 @@ const linking = {
       EventCheckIn: 'event',
       Staking: 'staking',
       Governance: 'governance',
+      VerificationScreen: 'verify', // 🆕 Added
+      ScoreScreen: 'score',         // 🆕 Added
     },
   },
 };
@@ -61,6 +67,8 @@ export default function AppNavigator() {
         <Stack.Screen name="EventCheckIn" component={EventCheckInScreen} />
         <Stack.Screen name="Staking" component={StakingScreen} />
         <Stack.Screen name="Governance" component={GovernanceScreen} />
+        <Stack.Screen name="VerificationScreen" component={VerificationScreen} /> {/* 🆕 */}
+        <Stack.Screen name="ScoreScreen" component={ScoreScreen} />               {/* 🆕 */}
       </Stack.Navigator>
     </NavigationContainer>
   );
