@@ -70,7 +70,7 @@ app.get('/health', (_req, res) => {
 
 // 🚀 API routes
 app.use('/api/users', userRoutes);
-app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/leaderboard', leaderboardRoutes); // 🆕 Now includes /submit-score and /superfan-top
 app.use('/api/scans', scanRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/api/referrals', referralRoutes);
