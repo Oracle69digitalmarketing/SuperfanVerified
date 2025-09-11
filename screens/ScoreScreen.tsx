@@ -1,16 +1,34 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Share } from 'react-native';
 import { useRoute } from '@react-navigation/native';
+import Constants from 'expo-constants';
+
+const API_URL = Constants.expoConfig?.extra?.apiUrl;
 
 const ScoreScreen = () => {
   const route = useRoute();
-  const { artistName, proof, txHash } = route.params as {
+  const { artistName, proof, txHash, walletAddress } = route.params as {
     artistName: string;
     proof: any;
     txHash: string;
+    walletAddress: string;
   };
 
   const superfanScore = proof.valid ? 100 : 0;
+
+  useEffect(() => {
+    if (walletAddress && artistName && typeof superfanScore === 'number') {
+      fetch(`${API_URL}/leaderboard/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          walletAddress,
+          artist: artistName,
+          score: superfanScore,
+        }),
+      }).catch(err => console.error('❌ Score submission failed:', err));
+    }
+  }, []);
 
   const handleShare = async () => {
     try {
