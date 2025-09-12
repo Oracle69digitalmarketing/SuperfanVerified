@@ -1,22 +1,3 @@
-Great question 👌
-
-Since your frontend already has a README, we’ll place this new README.md inside your backend root folder (where app.js, models/, routes/ live). That way:
-
-Judges/devs see frontend README when opening that repo.
-
-Backend has its own README with setup + .env instructions.
-
-Both repos stay clean and self-explanatory.
-
-
-
----
-
-Here’s the backend README draft:
-
-
----
-
 🚀 Superfan Backend
 
 Backend service for Superfan Verified — powered by XION + zkTLS + Spotify OAuth.
