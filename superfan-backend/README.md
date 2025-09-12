@@ -28,7 +28,7 @@ Redis (optional) — caching + session optimization
 
 1. Clone repo
 
-git clone https://github.com/your-org/superfan-backend.git
+git clone https://github.com/Oracle69digitalmarketing/superfan-backend.git
 cd superfan-backend
 
 2. Install dependencies
