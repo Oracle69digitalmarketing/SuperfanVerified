@@ -7,6 +7,7 @@ import mongoose from 'mongoose';
 import session from 'express-session';
 import passport from './config/passport.js';
 import MongoStore from 'connect-mongo';
+
 // import { createClient } from 'redis'; // 🔒 Redis disabled for now
 
 // Route modules
@@ -19,7 +20,6 @@ import spotifyRoutes from './routes/spotify.js';
 import authRoutes from './routes/auth.js';
 import tokenRoutes from './routes/token.js';
 import zktlsRoutes from './routes/zktls.js'; // 🆕 zkTLS route
-
 dotenv.config();
 
 const app = express();
@@ -94,6 +94,7 @@ app.use('/api/activities', activityRoutes);
 app.use('/api/referrals', referralRoutes);
 app.use('/api/spotify', spotifyRoutes); 
 app.use('/api/zktls', zktlsRoutes); // 🆕 zkTLS endpoint
+app.use('/api/token', tokenRoutes);
 app.use('/auth', authRoutes);
 app.use('/auth/token', tokenRoutes);
 
