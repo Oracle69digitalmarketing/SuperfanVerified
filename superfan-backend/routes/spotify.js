@@ -1,9 +1,10 @@
 // routes/spotify.js
+import { Router } from 'express';
+import { generateProof } from '../controllers/spotifyController.js';
 
-const express = require('express');
-const router = express.Router();
-const { generateProof } = require('../controllers/spotifyController');
+const router = Router();
 
+// POST /spotify/generate-proof
 router.post('/generate-proof', generateProof);
 
-module.exports = router;
+export default router;
