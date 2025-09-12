@@ -12,7 +12,7 @@ import leaderboardRoutes from './routes/leaderboardRoutes.js';
 import scanRoutes from './routes/scanRoutes.js';
 import activityRoutes from './routes/activityRoutes.js';
 import referralRoutes from './routes/referralRoutes.js';
-import spotifyRoutes from './routes/spotify.js'; // 🆕 zkTLS route added
+import spotifyRoutes from './routes/spotify.js'; // ✅ Integrated Spotify router // 🆕 zkTLS route added
 
 dotenv.config();
 
@@ -74,7 +74,7 @@ app.use('/api/leaderboard', leaderboardRoutes); // 🆕 Now includes /submit-sco
 app.use('/api/scans', scanRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/api/referrals', referralRoutes);
-app.use('/api/spotify', spotifyRoutes); // 🆕 zkTLS proof route
+app.use('/api/spotify', spotifyRoutes); // ✅ Spotify endpoint lives here // 🆕 zkTLS proof route
 
 // ❌ Error handler
 app.use((err, _req, res, _next) => {
