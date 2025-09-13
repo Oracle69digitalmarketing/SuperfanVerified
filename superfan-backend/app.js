@@ -7,6 +7,8 @@ import mongoose from 'mongoose';
 import session from 'express-session';
 import passport from './config/passport.js';
 import MongoStore from 'connect-mongo';
+import fs from 'fs';
+import path from 'path';
 
 // import { createClient } from 'redis'; // 🔒 Redis disabled for now
 
@@ -39,8 +41,33 @@ app.use(cors({ origin: allowedOrigins.length ? allowedOrigins : true }));
 // 🧠 JSON parsing
 app.use(express.json());
 
-// 📋 Request logging
+// 📋 Request logging (morgan for dev)
 app.use(morgan('dev'));
+
+// 🔹 Logger Middleware (Console + File in production)
+const logDir = path.join(process.cwd(), 'logs');
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir);
+}
+const logFile = fs.createWriteStream(path.join(logDir, 'app.log'), { flags: 'a' });
+
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const userInfo = req.user
+      ? ` | 👤 ${req.user.email || req.user.username || req.user.id}`
+      : '';
+    const logMsg = `📥 ${req.method} ${req.originalUrl} → ${res.statusCode} [${duration}ms]${userInfo}`;
+
+    if (process.env.NODE_ENV === 'production') {
+      logFile.write(`${new Date().toISOString()} ${logMsg}\n`);
+    } else {
+      console.log(logMsg);
+    }
+  });
+  next();
+});
 
 // 🔒 Redis setup disabled (keep for later)
 /*
