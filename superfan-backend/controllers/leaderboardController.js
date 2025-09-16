@@ -105,7 +105,8 @@ export const getSuperfanScores = async (_req, res) => {
   try {
     const scores = await SuperfanScore.find()
       .sort({ score: -1, createdAt: -1 })
-      .limit(100);
+      .limit(100)
+      .select('-__v'); // remove internal Mongoose field
 
     res.json(scores);
   } catch (err) {
