@@ -17,6 +17,9 @@ export const createTokensForUser = async (user) => {
   return { accessToken, refreshToken: r.token, expiresAt };
 };
 
+// Alias createTokensForUser as createToken
+export { createTokensForUser as createToken };
+
 export const refresh = async (req, res) => {
   try {
     const { refreshToken } = req.body;
