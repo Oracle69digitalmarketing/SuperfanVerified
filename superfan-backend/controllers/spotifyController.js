@@ -10,11 +10,11 @@ const generateZKProof = (topArtists, targetArtist) => {
 };
 
 const submitToXion = async (proof, walletAddress) => {
-  // Replace with actual XION SDK call when available
   return `tx_${Math.random().toString(36).slice(2)}`;
 };
 
-exports.generateProof = async (req, res) => {
+// ESM export
+export const generateProof = async (req, res) => {
   const { walletAddress, topArtists, targetArtist } = req.body;
 
   try {
