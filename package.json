@@ -1,27 +1,17 @@
 {
-  "name": "superfan-backend",
+  "name": "superfan-project",
   "version": "1.0.0",
-  "description": "Superfan backend API",
-  "main": "app.js",
+  "private": true,
   "scripts": {
-    "setup": "bash setup-backend.sh",
-    "start": "node app.js",
-    "dev": "nodemon app.js"
-  },
-  "keywords": [],
-  "author": "*",
-  "license": "ISC",
-  "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.2",
-    "express": "^5.1.0",
-    "helmet": "^8.1.0",
-    "mongoose": "^8.18.1",
-    "morgan": "^1.10.1",
-    "pg": "^8.16.3"
+    "start-backend": "node superfan-backend/app.js",
+    "start-frontend": "expo start --clear",
+    "dev": "concurrently \"npm run start-backend\" \"npm run start-frontend\"",
+    "lint": "eslint . --ext .js,.ts,.tsx",
+    "fix-imports": "node fix-imports.js"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
-  },
-  "type": "commonjs"
+    "concurrently": "^8.2.2",
+    "cross-env": "^10.0.0",
+    "eslint": "^8.53.0"
+  }
 }

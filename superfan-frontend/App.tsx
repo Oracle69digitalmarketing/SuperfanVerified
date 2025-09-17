@@ -3,7 +3,7 @@ import { View, Button, LogBox } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import * as SQLite from 'expo-sqlite';
 import * as Sentry from 'sentry-expo';
-import AppNavigator from './AppNavigator';
+import AppNavigator from './AppNavigator.tsx';
 import { WalletProvider } from './providers/WalletProvider'; // Adjust path if needed
 
 const db = SQLite.openDatabase('fanbase.db');
