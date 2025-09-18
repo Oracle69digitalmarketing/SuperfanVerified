@@ -1,3 +1,7 @@
+// Load environment variables first
+import dotenv from 'dotenv';
+dotenv.config();
+
 import passport from "passport";
 import SpotifyStrategy from "passport-spotify";
 import GoogleStrategy from "passport-google-oauth20";
@@ -43,31 +47,29 @@ passport.use(new SpotifyStrategy({
   clientID: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
   callbackURL: process.env.SPOTIFY_CALLBACK_URL,
-}, (at, rt, exp, profile, done) => handleUser(profile, at, rt, "spotify", done)));
+}, (accessToken, refreshToken, profile, done) => handleUser(profile, accessToken, refreshToken, "spotify", done)));
 
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   callbackURL: process.env.GOOGLE_CALLBACK_URL,
-}, (at, rt, profile, done) => handleUser(profile, at, rt, "google", done)));
+}, (accessToken, refreshToken, profile, done) => handleUser(profile, accessToken, refreshToken, "google", done)));
 
 passport.use(new FacebookStrategy({
   clientID: process.env.FACEBOOK_APP_ID,
   clientSecret: process.env.FACEBOOK_APP_SECRET,
   callbackURL: process.env.FACEBOOK_CALLBACK_URL,
   profileFields: ["id", "displayName", "emails"],
-}, (at, rt, profile, done) => handleUser(profile, at, rt, "facebook", done)));
+}, (accessToken, refreshToken, profile, done) => handleUser(profile, accessToken, refreshToken, "facebook", done)));
 
 passport.use(new TwitterStrategy({
   consumerKey: process.env.TWITTER_CONSUMER_KEY,
   consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
   callbackURL: process.env.TWITTER_CALLBACK_URL,
-}, (at, rt, profile, done) => handleUser(profile, at, rt, "twitter", done)));
+}, (accessToken, refreshToken, profile, done) => handleUser(profile, accessToken, refreshToken, "twitter", done)));
 
 // ===== SESSIONS =====
-passport.serializeUser((user, done) => {
-  done(null, user._id);
-});
+passport.serializeUser((user, done) => done(null, user._id));
 
 passport.deserializeUser(async (id, done) => {
   try {
