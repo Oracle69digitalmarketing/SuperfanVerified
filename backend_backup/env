@@ -1,7 +1,0 @@
-export SPOTIFY_CLIENT_ID=46fff09224634943846be66c31394555
-export SPOTIFY_CLIENT_SECRET=aae178e3612d4279a1839006ef5f3215
-export SPOTIFY_CALLBACK_URL=http://localhost:5000/auth/spotify/callback
-export GOOGLE_CLIENT_ID=172315192975-t9i7cormbb7ulmgcb99i3jdmrkgphc1g.apps.googleusercontent.com
-export GOOGLE_CLIENT_SECRET=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
-export GOOGLE_CALLBACK_URL=http://localhost:5000/auth/google/callback
-
