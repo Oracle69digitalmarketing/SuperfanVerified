@@ -30,7 +30,10 @@
     "express": "^5.1.0",
     "express-session": "^1.18.2",
     "helmet": "^8.1.0",
+<<<<<<< HEAD
     "jsonwebtoken": "^9.0.2",
+=======
+>>>>>>> b0d8182 (update dockerfiles and backend)
     "mongoose": "^8.18.1",
     "morgan": "^1.10.1",
     "nanoid": "^5.1.5",
@@ -45,7 +48,13 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+<<<<<<< HEAD
     "cross-env": "^7.0.3",
     "nodemon": "^3.1.10"
   }
+=======
+    "nodemon": "^3.1.10"
+  },
+  "type": "commonjs"
+>>>>>>> b0d8182 (update dockerfiles and backend)
 }

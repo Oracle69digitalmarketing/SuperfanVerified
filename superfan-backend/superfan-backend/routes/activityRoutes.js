@@ -1,6 +1,10 @@
 import express from 'express';
 import Activity from '../models/Activity.js';
+<<<<<<< HEAD:superfan-backend/routes/activityRoutes.js
 // import redisClient from '../utils/redisClient.js'; // ❌ Redis removed
+=======
+import redisClient from '../utils/redisClient.js'; // ✅ Centralized Redis import
+>>>>>>> b0d8182 (update dockerfiles and backend):superfan-backend/superfan-backend/routes/activityRoutes.js
 
 const router = express.Router();
 
@@ -31,13 +35,20 @@ router.post('/', async (req, res) => {
     const activity = new Activity({ name, description });
     await activity.save();
 
+<<<<<<< HEAD:superfan-backend/routes/activityRoutes.js
     // Redis leaderboard logic (disabled)
     /*
+=======
+    // Initialize in Redis leaderboard
+>>>>>>> b0d8182 (update dockerfiles and backend):superfan-backend/superfan-backend/routes/activityRoutes.js
     await redisClient.zAdd(REDIS_LEADERBOARD_KEY, {
       score: 0,
       value: activity._id.toString(),
     });
+<<<<<<< HEAD:superfan-backend/routes/activityRoutes.js
     */
+=======
+>>>>>>> b0d8182 (update dockerfiles and backend):superfan-backend/superfan-backend/routes/activityRoutes.js
 
     res.status(201).json(activity);
   } catch (err) {
@@ -53,17 +64,25 @@ router.post('/:id/score', async (req, res) => {
   try {
     const { increment = 1 } = req.body;
 
+<<<<<<< HEAD:superfan-backend/routes/activityRoutes.js
     // Redis score increment logic (disabled)
     /*
+=======
+>>>>>>> b0d8182 (update dockerfiles and backend):superfan-backend/superfan-backend/routes/activityRoutes.js
     const newScore = await redisClient.zIncrBy(
       REDIS_LEADERBOARD_KEY,
       increment,
       req.params.id
     );
+<<<<<<< HEAD:superfan-backend/routes/activityRoutes.js
     res.json({ activityId: req.params.id, newScore });
     */
 
     res.json({ activityId: req.params.id, newScore: `+${increment}` });
+=======
+
+    res.json({ activityId: req.params.id, newScore });
+>>>>>>> b0d8182 (update dockerfiles and backend):superfan-backend/superfan-backend/routes/activityRoutes.js
   } catch (err) {
     console.error('Increment activity score error:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -75,8 +94,11 @@ router.post('/:id/score', async (req, res) => {
 // ----------------------------
 router.get('/leaderboard', async (req, res) => {
   try {
+<<<<<<< HEAD:superfan-backend/routes/activityRoutes.js
     // Redis leaderboard fetch logic (disabled)
     /*
+=======
+>>>>>>> b0d8182 (update dockerfiles and backend):superfan-backend/superfan-backend/routes/activityRoutes.js
     const topActivities = await redisClient.zRangeWithScores(
       REDIS_LEADERBOARD_KEY,
       0,
@@ -84,9 +106,12 @@ router.get('/leaderboard', async (req, res) => {
       { REV: true }
     );
     res.json(topActivities);
+<<<<<<< HEAD:superfan-backend/routes/activityRoutes.js
     */
 
     res.json({ message: 'Leaderboard temporarily disabled (Redis removed)' });
+=======
+>>>>>>> b0d8182 (update dockerfiles and backend):superfan-backend/superfan-backend/routes/activityRoutes.js
   } catch (err) {
     console.error('Get leaderboard error:', err);
     res.status(500).json({ error: 'Internal server error' });

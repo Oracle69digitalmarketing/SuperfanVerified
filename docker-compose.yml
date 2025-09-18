@@ -1,0 +1,41 @@
+version: "3.3"
+
+services:
+  mongo:
+    image: mongo:6
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build:
+      context: .
+      dockerfile: superfan-backend.Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/superfan
+      - PORT=8000
+    volumes:
+      - ./superfan-backend:/app
+
+  frontend:
+    build:
+      context: .
+      dockerfile: superfan-frontend.Dockerfile
+    ports:
+      - "19006:19006"
+    depends_on:
+      - backend
+    environment:
+      - EXPO_USE_DEV_SERVER=true
+      - API_URL=http://localhost:8000
+    volumes:
+      - .:/app
+
+volumes:
+  mongo-data:
