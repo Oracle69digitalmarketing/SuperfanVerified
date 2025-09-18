@@ -1,12 +1,15 @@
-const express = require('express');
-const router = express.Router();
-const { generateZKProof, submitToXion } = require('../services/zktls');
+// routes/proof.js
+import express from 'express';
+import { generateZKProof, submitToXion } from '../services/zktls.js';
 
+const router = express.Router();
+
+// 🔹 Endpoint to generate a zkTLS proof
 router.post('/generate-proof', async (req, res) => {
   const { walletAddress, topArtists, targetArtist } = req.body;
 
   try {
-    const proof = await generateZKProof(topArtists, targetArtist);
+    const proof = generateZKProof(topArtists, targetArtist);
     const txHash = await submitToXion(proof, walletAddress);
 
     res.json({ proof, txHash });
@@ -16,4 +19,4 @@ router.post('/generate-proof', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

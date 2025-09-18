@@ -1,6 +1,6 @@
 // backend/controllers/referralController.js
-const ReferralReward = require('../models/ReferralReward');
-const User = require('../models/User');
+import ReferralReward from '../models/ReferralReward.js';
+import User from '../models/User.js';
 
 // 🎁 Create a referral reward entry with bonus
 exports.createReferralReward = async (req, res) => {
