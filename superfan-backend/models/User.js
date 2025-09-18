@@ -55,6 +55,11 @@ const userSchema = new mongoose.Schema(
     accessToken: String,
     refreshToken: String,
     profile: Object,
+
+    // 🔐 Verification Flags
+    xionDaveVerified: { type: Boolean, default: false },
+    zktlsVerified: { type: Boolean, default: false },
+    daveProofId: { type: String, default: null }, // optional reference to proof on-chain
   },
   { timestamps: true }
 );
