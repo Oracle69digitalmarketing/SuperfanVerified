@@ -1,62 +1,58 @@
+// routes/adminGatedContentRoutes.js
 import express from "express";
 import GatedContent from "../models/GatedContent.js";
 
 const router = express.Router();
 
 /**
- * POST: Create gated content (admin)
+ * Admin-facing: Manage gated content
+ * Requires: requireAuth + requireAdmin (applied in app.js)
  */
+
+// 📌 Create gated content
 router.post("/", async (req, res) => {
   try {
-    const { title, description, minFanScore, contentUrl, requiredFanTier, requireXionDave, requireZKTLS, accessPoints } = req.body;
-
-    if (!title || !description || !contentUrl) {
-      return res.status(400).json({ error: "Required fields missing: title, description, contentUrl" });
-    }
-
-    const content = new GatedContent({
-      title,
-      description,
-      minFanScore: minFanScore || 0,
-      contentUrl,
-      requiredFanTier: requiredFanTier || "Bronze",
-      requireXionDave: requireXionDave || false,
-      requireZKTLS: requireZKTLS || false,
-      accessPoints: accessPoints || 0,
-    });
-
+    const content = new GatedContent(req.body);
     await content.save();
     res.status(201).json(content);
   } catch (err) {
-    console.error("Create gated content error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(400).json({ error: err.message });
   }
 });
 
-/**
- * GET all gated content (admin)
- */
+// 📌 Update gated content
+router.put("/:id", async (req, res) => {
+  try {
+    const updated = await GatedContent.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    if (!updated) return res.status(404).json({ error: "Content not found" });
+    res.json(updated);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// 📌 Delete gated content
+router.delete("/:id", async (req, res) => {
+  try {
+    const deleted = await GatedContent.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ error: "Content not found" });
+    res.json({ message: "Content deleted" });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// 📌 List all gated content
 router.get("/", async (req, res) => {
   try {
-    const contents = await GatedContent.find();
-    res.json(contents);
+    const allContent = await GatedContent.find();
+    res.json(allContent);
   } catch (err) {
-    console.error("Get gated content error:", err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-/**
- * GET gated content by ID (admin)
- */
-router.get("/:id", async (req, res) => {
-  try {
-    const content = await GatedContent.findById(req.params.id);
-    if (!content) return res.status(404).json({ error: "Content not found" });
-    res.json(content);
-  } catch (err) {
-    console.error("Get gated content by ID error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: err.message });
   }
 });
 
