@@ -2,9 +2,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
-/**
- * Middleware to protect routes and attach full user to req.user
- */
 const requireAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -18,14 +15,14 @@ const requireAuth = async (req, res, next) => {
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (err) {
+    } catch {
       return res.status(401).json({ error: "Invalid or expired token" });
     }
 
     const user = await User.findById(decoded.id);
     if (!user) return res.status(401).json({ error: "User not found" });
 
-    req.user = user; // attach full user object
+    req.user = user;
     next();
   } catch (err) {
     console.error("Authentication middleware error:", err);
