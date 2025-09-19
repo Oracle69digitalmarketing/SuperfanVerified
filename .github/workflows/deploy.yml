@@ -20,8 +20,29 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    - name: Run tests (if you have any)
+    - name: Run tests
       run: npm test
 
-    - name: Build Expo project
-      run: npx expo export
+    # ✅ Web build (for deployment to Vercel/Netlify/Cloudflare Pages)
+    - name: Build Expo Web
+      run: npx expo export:web
+
+    # ✅ Mobile builds with EAS
+    - name: Install EAS CLI
+      run: npm install -g eas-cli
+
+    - name: Authenticate with Expo
+      run: eas whoami || eas login --token ${{ secrets.EXPO_TOKEN }}
+
+    # ⚡ Build preview APK/Simulator (internal distribution)
+    - name: Build Preview (Android/iOS)
+      run: eas build --platform all --profile preview --non-interactive
+
+    # ⚡ Build production release (store-ready)
+    - name: Build Production (Android/iOS)
+      run: eas build --platform all --profile production --non-interactive
+
+    # 🚀 Auto-submit to app stores (optional)
+    - name: Submit to Stores
+      run: eas submit --platform all --profile production --non-interactive
+      if: github.ref == 'refs/heads/main'
