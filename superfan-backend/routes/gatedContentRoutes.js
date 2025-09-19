@@ -1,14 +1,13 @@
-// routes/gatedContentRoutes.js
 import express from "express";
 import passport from "passport";
-import GatedContent from "../models/GatedContent.js";
 import User from "../models/User.js";
+import GatedContent from "../models/GatedContent.js";
 
 const router = express.Router();
 
-// ----------------------------
-// GET: All gated content (user + verification aware)
-// ----------------------------
+/**
+ * GET all gated content (user-aware)
+ */
 router.get(
   "/",
   passport.authenticate("jwt", { session: false }),
@@ -28,22 +27,15 @@ router.get(
             user.fanStreak.longest >= content.minFanScore &&
             ["Bronze", "Silver", "Gold", "Legend"].indexOf(user.fanTier) >=
               ["Bronze", "Silver", "Gold", "Legend"].indexOf(content.requiredFanTier) &&
-            user.xionDaveVerified &&
-            user.zktlsVerified
+            (!content.requireXionDave || user.xionDaveVerified) &&
+            (!content.requireZKTLS || user.zktlsVerified)
           ) {
             unlocked = true;
 
-            // grant points if not already claimed
             if (!user.rewards.includes(`Access-${content._id}`)) {
               user.points += content.accessPoints || 0;
               user.rewards.push(`Access-${content._id}`);
               await user.save();
-            }
-
-            // track access for analytics
-            if (!content.accessedBy.includes(user._id)) {
-              content.accessedBy.push(user._id);
-              await content.save();
             }
           }
 
@@ -56,6 +48,8 @@ router.get(
             requiredFanTier: content.requiredFanTier,
             unlocked,
             accessPoints: content.accessPoints || 0,
+            requireXionDave: content.requireXionDave || false,
+            requireZKTLS: content.requireZKTLS || false,
           };
         })
       );
@@ -68,9 +62,9 @@ router.get(
   }
 );
 
-// ----------------------------
-// GET: Gated content by ID (user + verification aware)
-// ----------------------------
+/**
+ * GET gated content by ID (user-aware)
+ */
 router.get(
   "/:id",
   passport.authenticate("jwt", { session: false }),
@@ -88,20 +82,14 @@ router.get(
         user.fanStreak.longest >= content.minFanScore &&
         ["Bronze", "Silver", "Gold", "Legend"].indexOf(user.fanTier) >=
           ["Bronze", "Silver", "Gold", "Legend"].indexOf(content.requiredFanTier) &&
-        user.xionDaveVerified &&
-        user.zktlsVerified
+        (!content.requireXionDave || user.xionDaveVerified) &&
+        (!content.requireZKTLS || user.zktlsVerified)
       ) {
         unlocked = true;
-
         if (!user.rewards.includes(`Access-${content._id}`)) {
           user.points += content.accessPoints || 0;
           user.rewards.push(`Access-${content._id}`);
           await user.save();
-        }
-
-        if (!content.accessedBy.includes(user._id)) {
-          content.accessedBy.push(user._id);
-          await content.save();
         }
       }
 
@@ -114,6 +102,8 @@ router.get(
         requiredFanTier: content.requiredFanTier,
         unlocked,
         accessPoints: content.accessPoints || 0,
+        requireXionDave: content.requireXionDave || false,
+        requireZKTLS: content.requireZKTLS || false,
       });
     } catch (err) {
       console.error("Get gated content by ID error:", err);
