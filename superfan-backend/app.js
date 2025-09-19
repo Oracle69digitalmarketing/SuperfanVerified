@@ -30,9 +30,11 @@ app.get("/", (req, res) => res.send("✅ SuperfanVerified Backend Running"));
 app.use("/auth", authRoutes);
 
 // ===== Admin Gated Content Routes =====
+// Protected by authentication + admin check
 app.use("/admin/gated", requireAuth, requireAdmin, adminGatedRoutes);
 
 // ===== User-Facing Gated Content Routes =====
+// Protected by authentication
 app.use("/gated", requireAuth, userGatedRoutes);
 
 // ===== Fallback for unknown routes =====
