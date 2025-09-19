@@ -8,7 +8,9 @@ import User from '../models/User.js';
 export const createUser = async (req, res) => {
   try {
     const { walletAddress, name, referredBy } = req.body;
-    if (!walletAddress) return res.status(400).json({ error: 'walletAddress required' });
+    if (!walletAddress) {
+      return res.status(400).json({ error: 'walletAddress required' });
+    }
 
     // Check if user exists
     let user = await User.findOne({ wallet_address: walletAddress });
@@ -30,7 +32,7 @@ export const createUser = async (req, res) => {
         referralCode,
         referredBy: referrer?._id || null,
         fanStreak: { current: 0, longest: 0, lastScanDate: null },
-        tier: 'Bronze'
+        tier: 'Bronze',
       });
 
       // 🏆 Sync Redis leaderboard (disabled)
