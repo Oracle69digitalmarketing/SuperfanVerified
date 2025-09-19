@@ -1,9 +1,15 @@
+// config/passport.js
+import 'dotenv/config'; // ← must be first
 import passport from "passport";
 import { Strategy as SpotifyStrategy } from "passport-spotify";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import { Strategy as TwitterStrategy } from "passport-twitter";
 import { handleUser } from "../controllers/userController.js";
+
+// Debug env variables (temporary)
+console.log('SPOTIFY_CLIENT_ID:', process.env.SPOTIFY_CLIENT_ID);
+console.log('FACEBOOK_CLIENT_ID:', process.env.FACEBOOK_APP_ID);
 
 // ===== SPOTIFY =====
 passport.use(
@@ -39,8 +45,8 @@ passport.use(
 passport.use(
   new FacebookStrategy(
     {
-      clientID: process.env.FACEBOOK_CLIENT_ID,
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+      clientID: process.env.FACEBOOK_APP_ID, // ← use env variable exactly as in .env
+      clientSecret: process.env.FACEBOOK_APP_SECRET,
       callbackURL: process.env.FACEBOOK_CALLBACK_URL,
       profileFields: ["id", "emails", "name"],
     },
