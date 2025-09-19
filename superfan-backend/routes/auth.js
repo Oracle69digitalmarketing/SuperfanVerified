@@ -1,61 +1,53 @@
-// routes/auth.js
 import express from "express";
 import passport from "passport";
-import { createTokensForUser } from "../controllers/tokenController.js";
+import User from "../models/User.js";
 
 const router = express.Router();
 
-/**
- * Helper: finalize login and redirect with tokens
- */
-const handleAuthSuccess = async (req, res) => {
-  try {
-    const tokens = await createTokensForUser(req.user);
-    const redirectUrl = `${process.env.FRONTEND_URL}/auth/success?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`;
-    return res.redirect(redirectUrl);
-  } catch (err) {
-    console.error("Auth Success Error:", err);
-    return res.redirect(`${process.env.FRONTEND_URL}/auth/failure`);
+// ----------------------------
+// Social login / callback
+// ----------------------------
+router.get(
+  "/:provider",
+  (req, res, next) => {
+    const provider = req.params.provider;
+    if (!["spotify", "google", "facebook", "twitter"].includes(provider)) {
+      return res.status(400).json({ error: "Unsupported provider" });
+    }
+    passport.authenticate(provider, { scope: ["email", "profile"] })(req, res, next);
   }
-};
-
-// ===== SPOTIFY =====
-router.get(
-  "/spotify",
-  passport.authenticate("spotify", { scope: ["user-read-email", "user-read-private"] })
 );
 
+// ----------------------------
+// Social callback handler
+// ----------------------------
 router.get(
-  "/spotify/callback",
-  passport.authenticate("spotify", { session: false, failureRedirect: "/login" }),
-  handleAuthSuccess
-);
+  "/:provider/callback",
+  passport.authenticate(["spotify", "google", "facebook", "twitter"], {
+    session: false,
+  }),
+  async (req, res) => {
+    try {
+      const user = req.user;
 
-// ===== GOOGLE =====
-router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+      // Always include verification flags
+      const payload = {
+        id: user._id,
+        name: user.name,
+        walletAddress: user.walletAddress,
+        fanTier: user.fanTier,
+        points: user.points,
+        xionDaveVerified: user.xionDaveVerified || false,
+        zktlsVerified: user.zktlsVerified || false,
+      };
 
-router.get(
-  "/google/callback",
-  passport.authenticate("google", { session: false, failureRedirect: "/login" }),
-  handleAuthSuccess
-);
-
-// ===== FACEBOOK =====
-router.get("/facebook", passport.authenticate("facebook", { scope: ["email"] }));
-
-router.get(
-  "/facebook/callback",
-  passport.authenticate("facebook", { session: false, failureRedirect: "/login" }),
-  handleAuthSuccess
-);
-
-// ===== TWITTER =====
-router.get("/twitter", passport.authenticate("twitter"));
-
-router.get(
-  "/twitter/callback",
-  passport.authenticate("twitter", { session: false, failureRedirect: "/login" }),
-  handleAuthSuccess
+      // Send JWT or session token
+      res.json({ user: payload, token: req.userToken });
+    } catch (err) {
+      console.error("Auth callback error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
 );
 
 export default router;
