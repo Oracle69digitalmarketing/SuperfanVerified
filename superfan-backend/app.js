@@ -11,6 +11,7 @@ import userGatedRoutes from "./routes/userGatedContentRoutes.js";   // user-faci
 import "./config/passport.js"; // initialize passport strategies
 
 import requireAuth from "./middleware/requireAuth.js";
+import requireAdmin from "./middleware/requireAdmin.js";
 
 dotenv.config();
 
@@ -29,8 +30,7 @@ app.get("/", (req, res) => res.send("✅ SuperfanVerified Backend Running"));
 app.use("/auth", authRoutes);
 
 // ===== Admin Gated Content Routes =====
-// Admin routes should be protected (custom admin middleware can be added if needed)
-app.use("/admin/gated", requireAuth, adminGatedRoutes);
+app.use("/admin/gated", requireAuth, requireAdmin, adminGatedRoutes);
 
 // ===== User-Facing Gated Content Routes =====
 app.use("/gated", requireAuth, userGatedRoutes);
