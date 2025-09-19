@@ -28,8 +28,8 @@ const userSchema = new mongoose.Schema(
 
     // 🎁 Rewards / Gamification
     points: { type: Number, default: 0 },
-    rewards: [{ type: String }], // badges, perks, NFTs
-    redeemedRewards: [{ type: String }], // track claimed rewards
+    rewards: [{ type: String }],        // earned badges, perks, NFTs
+    redeemedRewards: [{ type: String }], // claimed rewards history
 
     // 🌍 Social/Provider Auth
     provider: { type: String },
@@ -45,6 +45,9 @@ const userSchema = new mongoose.Schema(
     zktlsVerified: { type: Boolean, default: false },
     daveProofId: { type: String, default: null },
     rumContractAddress: { type: String, default: null }, // optional on-chain proof
+
+    // 🛡️ Roles
+    isAdmin: { type: Boolean, default: false }, // allows admin-only access
   },
   { timestamps: true }
 );
@@ -81,7 +84,9 @@ userSchema.statics.updateStreak = async function (userId) {
     user.fanStreak.current = 1;
   }
 
-  if (user.fanStreak.current > user.fanStreak.longest) user.fanStreak.longest = user.fanStreak.current;
+  if (user.fanStreak.current > user.fanStreak.longest) {
+    user.fanStreak.longest = user.fanStreak.current;
+  }
 
   // 🎁 Reward milestones
   if ([7, 14, 30].includes(user.fanStreak.current)) {
