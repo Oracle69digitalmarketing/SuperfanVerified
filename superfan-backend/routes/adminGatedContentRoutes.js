@@ -1,58 +1,87 @@
-// routes/adminGatedContentRoutes.js
 import express from "express";
 import GatedContent from "../models/GatedContent.js";
 
 const router = express.Router();
 
 /**
- * Admin-facing: Manage gated content
- * Requires: requireAuth + requireAdmin (applied in app.js)
+ * 🔹 GET all gated content (Admin)
  */
-
-// 📌 Create gated content
-router.post("/", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const content = new GatedContent(req.body);
-    await content.save();
-    res.status(201).json(content);
+    const contents = await GatedContent.find();
+    res.json(contents);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error("Error fetching gated content (admin):", err);
+    res.status(500).json({ error: "Failed to fetch content" });
   }
 });
 
-// 📌 Update gated content
+/**
+ * 🔹 POST create new gated content
+ */
+router.post("/", async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      contentUrl,
+      minFanScore,
+      requiredFanTier,
+      requireXionDave,
+      requireZKTLS,
+      accessPoints,
+    } = req.body;
+
+    const content = new GatedContent({
+      title,
+      description,
+      contentUrl,
+      minFanScore,
+      requiredFanTier,
+      requireXionDave,
+      requireZKTLS,
+      accessPoints,
+    });
+
+    await content.save();
+    res.status(201).json(content);
+  } catch (err) {
+    console.error("Error creating gated content:", err);
+    res.status(500).json({ error: "Failed to create content" });
+  }
+});
+
+/**
+ * 🔹 PUT update gated content
+ */
 router.put("/:id", async (req, res) => {
   try {
-    const updated = await GatedContent.findByIdAndUpdate(
+    const content = await GatedContent.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true }
     );
-    if (!updated) return res.status(404).json({ error: "Content not found" });
-    res.json(updated);
+
+    if (!content) return res.status(404).json({ error: "Content not found" });
+    res.json(content);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error("Error updating gated content:", err);
+    res.status(500).json({ error: "Failed to update content" });
   }
 });
 
-// 📌 Delete gated content
+/**
+ * 🔹 DELETE gated content
+ */
 router.delete("/:id", async (req, res) => {
   try {
-    const deleted = await GatedContent.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ error: "Content not found" });
-    res.json({ message: "Content deleted" });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
+    const content = await GatedContent.findByIdAndDelete(req.params.id);
+    if (!content) return res.status(404).json({ error: "Content not found" });
 
-// 📌 List all gated content
-router.get("/", async (req, res) => {
-  try {
-    const allContent = await GatedContent.find();
-    res.json(allContent);
+    res.json({ message: "Content deleted successfully", content });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Error deleting gated content:", err);
+    res.status(500).json({ error: "Failed to delete content" });
   }
 });
 
