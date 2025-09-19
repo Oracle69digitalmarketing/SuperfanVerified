@@ -3,30 +3,34 @@ import mongoose from "mongoose";
 
 const gatedContentSchema = new mongoose.Schema(
   {
-    // 🎯 Core content info
-    title: { type: String, required: true },
-    description: { type: String, default: "" },
-    contentUrl: { type: String, required: true },
+    // 📝 Content metadata
+    title: { type: String, required: true, trim: true },
+    description: { type: String, trim: true },
+    contentType: {
+      type: String,
+      enum: ["text", "image", "video", "link", "nft", "other"],
+      default: "text",
+    },
+    contentUrl: { type: String, trim: true }, // could be CDN, IPFS, etc.
 
-    // 🧾 Fan requirements
-    minFanScore: { type: Number, default: 0 },           // minimum fan streak required
-    requiredFanTier: {
+    // 🔐 Access control
+    requiredTier: {
       type: String,
       enum: ["Bronze", "Silver", "Gold", "Legend"],
       default: "Bronze",
     },
+    requiredPoints: { type: Number, default: 0 },
+    requiredRewards: [{ type: String }], // e.g. badges, streak milestones
 
-    // 🔐 Verification requirements
-    requireXionDave: { type: Boolean, default: false },  // must be XIONDave verified
-    requireZKTLS: { type: Boolean, default: false },     // must be ZKTLS verified
+    // 📊 Engagement tracking
+    views: { type: Number, default: 0 },
+    claimedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
-    // 🎁 Access rewards
-    accessPoints: { type: Number, default: 0 },          // points granted on first unlock
-
-    // 📅 Timestamps
-    createdAt: { type: Date, default: Date.now },
+    // 👤 Ownership / Admin
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    isActive: { type: Boolean, default: true },
   },
-  { timestamps: true } // adds updatedAt automatically
+  { timestamps: true }
 );
 
 export default mongoose.model("GatedContent", gatedContentSchema);
