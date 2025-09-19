@@ -1,21 +1,21 @@
-# Backend Dockerfile
+Backend Dockerfile
 
 FROM python:3.11-slim
 
-# Set working directory
+Set working directory
 WORKDIR /app
 
-# Copy backend requirements
+Copy backend requirements
 COPY requirements.txt .
 
-# Install Python dependencies
+Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend source code
-COPY . .
+Copy backend source code
+COPY superfan-backend/ .
 
-# Expose API port
+Expose API port
 EXPOSE 8000
 
-# Run backend server
+Run backend server
 CMD ["python", "app.py"]
