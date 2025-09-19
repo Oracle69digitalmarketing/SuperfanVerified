@@ -5,28 +5,12 @@ import { nanoid } from "nanoid";
 const userSchema = new mongoose.Schema(
   {
     // 🔑 Wallet & Identity
-    walletAddress: {
-      type: String,
-      unique: true,
-      sparse: true,
-      index: true,
-    },
-    name: {
-      type: String,
-      trim: true,
-    },
+    walletAddress: { type: String, unique: true, sparse: true, index: true },
+    name: { type: String, trim: true },
 
     // 👥 Referrals
-    referralCode: {
-      type: String,
-      unique: true,
-      sparse: true,
-    },
-    referredBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      default: null,
-    },
+    referralCode: { type: String, unique: true, sparse: true },
+    referredBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
 
     // 🧾 Fan streak tracking
     fanStreak: {
@@ -44,8 +28,8 @@ const userSchema = new mongoose.Schema(
 
     // 🎁 Rewards / Gamification
     points: { type: Number, default: 0 },
-    rewards: [{ type: String }],
-    redeemedRewards: [{ type: String }],
+    rewards: [{ type: String }], // badges, perks, NFTs
+    redeemedRewards: [{ type: String }], // track claimed rewards
 
     // 🌍 Social/Provider Auth
     provider: { type: String },
@@ -60,36 +44,28 @@ const userSchema = new mongoose.Schema(
     xionDaveVerified: { type: Boolean, default: false },
     zktlsVerified: { type: Boolean, default: false },
     daveProofId: { type: String, default: null },
-    rumContractAddress: { type: String, default: null }, // optional on-chain proof reference
+    rumContractAddress: { type: String, default: null }, // optional on-chain proof
   },
   { timestamps: true }
 );
 
-/**
- * 🧩 Auto-generate referral code if missing
- */
+// 🧩 Auto-generate referral code
 userSchema.pre("save", function (next) {
   if (!this.referralCode) this.referralCode = nanoid(8);
   next();
 });
 
-/**
- * 🏆 Auto-assign fanTier based on longest streak
- */
+// 🏆 Auto-assign fanTier based on longest streak
 userSchema.pre("save", function (next) {
   const streak = this.fanStreak.longest || 0;
-
   if (streak >= 30) this.fanTier = "Legend";
   else if (streak >= 20) this.fanTier = "Gold";
   else if (streak >= 10) this.fanTier = "Silver";
   else this.fanTier = "Bronze";
-
   next();
 });
 
-/**
- * ⚡ Update fan streak
- */
+// ⚡ Update fan streak
 userSchema.statics.updateStreak = async function (userId) {
   const user = await this.findById(userId);
   if (!user) return null;
@@ -118,9 +94,7 @@ userSchema.statics.updateStreak = async function (userId) {
   return user;
 };
 
-/**
- * 🎁 Apply referral bonus
- */
+// 🎁 Apply referral bonus
 userSchema.statics.applyReferral = async function (userId, referralCode) {
   const user = await this.findById(userId);
   if (!user) return null;
@@ -132,7 +106,6 @@ userSchema.statics.applyReferral = async function (userId, referralCode) {
     user.referredBy = referrer._id;
     await user.save();
 
-    // 🎁 Reward referrer + new user
     referrer.points += 100;
     referrer.rewards.push("Referral-Bonus");
 
@@ -146,9 +119,7 @@ userSchema.statics.applyReferral = async function (userId, referralCode) {
   return { user, referrer };
 };
 
-/**
- * 🛍️ Claim reward by spending points
- */
+// 🛍️ Claim reward by spending points
 userSchema.statics.claimReward = async function (userId, rewardName, cost) {
   const user = await this.findById(userId);
   if (!user) throw new Error("User not found");
