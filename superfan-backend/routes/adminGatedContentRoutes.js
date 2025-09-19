@@ -4,50 +4,58 @@ import GatedContent from "../models/GatedContent.js";
 const router = express.Router();
 
 /**
- * POST create new gated content (admin)
- * - title
- * - description
- * - minFanScore
- * - requiredFanTier
- * - contentUrl
- * - accessPoints
- * - requireXionDave
- * - requireZKTLS
+ * POST: Create gated content (admin)
  */
 router.post("/", async (req, res) => {
   try {
-    const {
-      title,
-      description,
-      minFanScore = 0,
-      requiredFanTier = "Bronze",
-      contentUrl,
-      accessPoints = 0,
-      requireXionDave = false,
-      requireZKTLS = false,
-    } = req.body;
+    const { title, description, minFanScore, contentUrl, requiredFanTier, requireXionDave, requireZKTLS, accessPoints } = req.body;
 
     if (!title || !description || !contentUrl) {
-      return res
-        .status(400)
-        .json({ error: "title, description, and contentUrl are required" });
+      return res.status(400).json({ error: "Required fields missing: title, description, contentUrl" });
     }
 
     const content = new GatedContent({
       title,
       description,
-      minFanScore,
-      requiredFanTier,
+      minFanScore: minFanScore || 0,
       contentUrl,
-      accessPoints,
-      requireXionDave,
-      requireZKTLS,
+      requiredFanTier: requiredFanTier || "Bronze",
+      requireXionDave: requireXionDave || false,
+      requireZKTLS: requireZKTLS || false,
+      accessPoints: accessPoints || 0,
     });
 
     await content.save();
     res.status(201).json(content);
   } catch (err) {
     console.error("Create gated content error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * GET all gated content (admin)
+ */
+router.get("/", async (req, res) => {
+  try {
+    const contents = await GatedContent.find();
+    res.json(contents);
+  } catch (err) {
+    console.error("Get gated content error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * GET gated content by ID (admin)
+ */
+router.get("/:id", async (req, res) => {
+  try {
+    const content = await GatedContent.findById(req.params.id);
+    if (!content) return res.status(404).json({ error: "Content not found" });
+    res.json(content);
+  } catch (err) {
+    console.error("Get gated content by ID error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
