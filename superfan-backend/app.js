@@ -6,9 +6,11 @@ import cors from "cors";
 import passport from "passport";
 
 import authRoutes from "./routes/auth.js";
-import gatedRoutes from "./routes/gatedContent.js"; // new gated content routes
-import "./config/passport.js"; // initialize strategies
-import { requireFanTier, requireVerification } from "./middleware/auth.js"; // custom middleware
+import adminGatedRoutes from "./routes/adminGatedContentRoutes.js"; // admin-facing
+import userGatedRoutes from "./routes/userGatedContentRoutes.js";   // user-facing
+import "./config/passport.js"; // initialize passport strategies
+
+import requireAuth from "./middleware/requireAuth.js";
 
 dotenv.config();
 
@@ -26,14 +28,12 @@ app.get("/", (req, res) => res.send("✅ SuperfanVerified Backend Running"));
 // ===== Auth Routes =====
 app.use("/auth", authRoutes);
 
-// ===== Gated Content Routes =====
-// Example: only allow users with Silver+ tier and verified XION Dave to access
-app.use(
-  "/gated",
-  requireVerification("xionDaveVerified"), // must have XION Dave verification
-  requireFanTier("Silver"), // must be Silver or higher
-  gatedRoutes
-);
+// ===== Admin Gated Content Routes =====
+// Admin routes should be protected (custom admin middleware can be added if needed)
+app.use("/admin/gated", requireAuth, adminGatedRoutes);
+
+// ===== User-Facing Gated Content Routes =====
+app.use("/gated", requireAuth, userGatedRoutes);
 
 // ===== Fallback for unknown routes =====
 app.use((req, res) => {
@@ -50,6 +50,8 @@ app.listen(PORT, () => {
   console.log("  /auth/google");
   console.log("  /auth/facebook");
   console.log("  /auth/twitter");
-  console.log("Gated content routes ready at:");
+  console.log("Admin gated content routes ready at:");
+  console.log("  /admin/gated/*");
+  console.log("User-facing gated content routes ready at:");
   console.log("  /gated/*");
 });
