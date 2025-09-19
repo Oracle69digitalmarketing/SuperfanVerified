@@ -1,38 +1,64 @@
 import express from "express";
 import requireAuth from "../middleware/requireAuth.js";
-import requireProofs from "../middleware/requireProofs.js";
 import GatedContent from "../models/GatedContent.js";
+import User from "../models/User.js";
 
 const router = express.Router();
 
 /**
  * GET gated content
  * - Requires authentication
- * - Checks XION Dave + ZKTLS if required
- * - Checks minFanScore
+ * - Checks XION Dave + ZKTLS verification
+ * - Checks minFanScore + requiredFanTier
+ * - Grants accessPoints on first unlock
  */
 router.get("/", requireAuth, async (req, res) => {
   try {
-    const user = req.user;
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
 
     // Fetch all gated content
     const contents = await GatedContent.find({});
 
-    // Filter content based on user's status
-    const accessible = contents.filter((c) => {
-      // Fan score check
-      if (user.points < c.minFanScore) return false;
+    const accessible = await Promise.all(
+      contents.map(async (content) => {
+        let unlocked = false;
 
-      // Multi-proof check
-      if (c.requireXionDave && !user.xionDaveVerified) return false;
-      if (c.requireZKTLS && !user.zktlsVerified) return false;
+        // Fan tier & score check
+        if (
+          user.fanTier &&
+          user.fanStreak.longest >= content.minFanScore &&
+          ["Bronze", "Silver", "Gold", "Legend"].indexOf(user.fanTier) >=
+            ["Bronze", "Silver", "Gold", "Legend"].indexOf(content.requiredFanTier) &&
+          (!content.requireXionDave || user.xionDaveVerified) &&
+          (!content.requireZKTLS || user.zktlsVerified)
+        ) {
+          unlocked = true;
 
-      return true;
-    });
+          // grant accessPoints if first unlock
+          if (!user.rewards.includes(`Access-${content._id}`)) {
+            user.points += content.accessPoints || 0;
+            user.rewards.push(`Access-${content._id}`);
+            await user.save();
+          }
+        }
+
+        return {
+          _id: content._id,
+          title: content.title,
+          description: content.description,
+          contentUrl: content.contentUrl,
+          minFanScore: content.minFanScore,
+          requiredFanTier: content.requiredFanTier,
+          unlocked,
+          accessPoints: content.accessPoints || 0,
+        };
+      })
+    );
 
     res.json(accessible);
   } catch (err) {
-    console.error(err);
+    console.error("Gated content fetch error:", err);
     res.status(500).json({ error: "Failed to load gated content" });
   }
 });
