@@ -1,4 +1,4 @@
-version: "3.3"
+version: "3.8"
 
 services:
   mongo:
@@ -11,8 +11,9 @@ services:
 
   backend:
     build:
-      context: .
+      context: ./superfan-backend
       dockerfile: superfan-backend.Dockerfile
+    container_name: superfan-backend
     ports:
       - "8000:8000"
     depends_on:
@@ -22,11 +23,13 @@ services:
       - PORT=8000
     volumes:
       - ./superfan-backend:/app
+    command: node app.js
 
   frontend:
     build:
-      context: .
+      context: ./superfan-frontend
       dockerfile: superfan-frontend.Dockerfile
+    container_name: superfan-frontend
     ports:
       - "19006:19006"
     depends_on:
@@ -35,7 +38,8 @@ services:
       - EXPO_USE_DEV_SERVER=true
       - API_URL=http://localhost:8000
     volumes:
-      - .:/app
+      - ./superfan-frontend:/app
+    command: npm start
 
 volumes:
   mongo-data:
