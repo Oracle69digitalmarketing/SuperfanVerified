@@ -1,15 +1,32 @@
+// models/GatedContent.js
 import mongoose from "mongoose";
 
-const gatedContentSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String },
-  minFanScore: { type: Number, default: 0 },
-  contentUrl: { type: String, required: true },
-  requiredFanTier: { type: String, enum: ["Bronze", "Silver", "Gold", "Legend"], default: "Bronze" },
-  requireXionDave: { type: Boolean, default: false },
-  requireZKTLS: { type: Boolean, default: false },
-  accessPoints: { type: Number, default: 0 },
-  createdAt: { type: Date, default: Date.now }
-});
+const gatedContentSchema = new mongoose.Schema(
+  {
+    // 🎯 Core content info
+    title: { type: String, required: true },
+    description: { type: String, default: "" },
+    contentUrl: { type: String, required: true },
+
+    // 🧾 Fan requirements
+    minFanScore: { type: Number, default: 0 },           // minimum fan streak required
+    requiredFanTier: {
+      type: String,
+      enum: ["Bronze", "Silver", "Gold", "Legend"],
+      default: "Bronze",
+    },
+
+    // 🔐 Verification requirements
+    requireXionDave: { type: Boolean, default: false },  // must be XIONDave verified
+    requireZKTLS: { type: Boolean, default: false },     // must be ZKTLS verified
+
+    // 🎁 Access rewards
+    accessPoints: { type: Number, default: 0 },          // points granted on first unlock
+
+    // 📅 Timestamps
+    createdAt: { type: Date, default: Date.now },
+  },
+  { timestamps: true }
+);
 
 export default mongoose.model("GatedContent", gatedContentSchema);
