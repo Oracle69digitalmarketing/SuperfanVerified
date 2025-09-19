@@ -26,7 +26,7 @@ const gatedContentSchema = new mongoose.Schema(
     // 📅 Timestamps
     createdAt: { type: Date, default: Date.now },
   },
-  { timestamps: true }
+  { timestamps: true } // adds updatedAt automatically
 );
 
 export default mongoose.model("GatedContent", gatedContentSchema);
