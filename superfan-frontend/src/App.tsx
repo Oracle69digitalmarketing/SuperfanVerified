@@ -1,42 +1,44 @@
-import React, { useEffect } from 'react';
-import { View, Button, LogBox } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import * as SQLite from 'expo-sqlite';
-import * as Sentry from 'sentry-expo';
-import AppNavigator from './AppNavigator.tsx';
-import { WalletProvider } from './providers/WalletProvider'; // Adjust path if needed
+import React, { useEffect } from "react";
+import { LogBox } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import * as SQLite from "expo-sqlite";
+import * as Sentry from "sentry-expo";
+import AppNavigator from "./AppNavigator";
+import { AbstraxionProvider, useAbstraxion } from "@burnt-labs/abstraxion-react-native";
 
-const db = SQLite.openDatabase('fanbase.db');
+// Local DB
+const db = SQLite.openDatabase("fanbase.db");
 
-// 🔧 Deep linking config
+// Deep linking
 const linking = {
-  prefixes: ['superfanverified://'],
+  prefixes: ["superfanverified://"],
   config: {
     screens: {
-      Home: 'home',
-      Staking: 'staking',
-      Governance: 'governance',
-      QRScanner: 'qrscanner',
-      Users: 'users',
-      Scans: 'scans',
-      VotingHistory: 'voting-history',
-      LeaderboardScreen: 'leaderboard',
+      Home: "home",
+      Staking: "staking",
+      Governance: "governance",
+      QRScanner: "qrscanner",
+      Users: "users",
+      Scans: "scans",
+      VotingHistory: "voting-history",
+      LeaderboardScreen: "leaderboard",
       EventCheckIn: {
-        path: 'event-checkin',
+        path: "event-checkin",
         parse: { event_id: (id: string) => `${id}` },
       },
     },
   },
 };
 
-// 🧱 Setup local SQLite tables
+// DB Setup
 const setupDatabase = () => {
-  db.transaction(tx => {
+  db.transaction((tx) => {
     tx.executeSql(
       `CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        email TEXT UNIQUE NOT NULL,
+        username TEXT UNIQUE,
+        email TEXT UNIQUE,
+        wallet_address TEXT UNIQUE,
         referral_code TEXT UNIQUE,
         referred_by TEXT,
         points INTEGER DEFAULT 0,
@@ -44,9 +46,9 @@ const setupDatabase = () => {
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       );`,
       [],
-      () => console.log('✅ users table ready'),
+      () => console.log("✅ users table ready"),
       (_, error) => {
-        console.error('❌ users table error:', error);
+        console.error("❌ users table error:", error);
         Sentry.Native.captureException(error);
         return false;
       }
@@ -54,17 +56,23 @@ const setupDatabase = () => {
   });
 };
 
-// 🧪 Debug utility
-const fetchUsers = () => {
-  db.transaction(tx => {
+// Insert or update logged-in user
+const upsertUser = (walletAddress: string) => {
+  if (!walletAddress) return;
+  db.transaction((tx) => {
     tx.executeSql(
-      'SELECT * FROM users;',
-      [],
-      (_, { rows }) => {
-        console.log('Users:', rows._array);
-      },
+      `INSERT OR IGNORE INTO users (username, email, wallet_address, points, rank) 
+       VALUES (?, ?, ?, ?, ?)`,
+      [
+        `user_${walletAddress.slice(0, 6)}`, // placeholder username
+        `${walletAddress}@superfan.io`,     // placeholder email
+        walletAddress,
+        0,
+        0,
+      ],
+      () => console.log(`✅ User ${walletAddress} upserted`),
       (_, error) => {
-        console.error('Select error:', error);
+        console.error("❌ upsert error:", error);
         Sentry.Native.captureException(error);
         return false;
       }
@@ -72,20 +80,31 @@ const fetchUsers = () => {
   });
 };
 
-export default function App(): JSX.Element {
+// Wrapper to sync Abstraxion login with SQLite
+function AuthSync() {
+  const { address } = useAbstraxion();
+
+  useEffect(() => {
+    if (address) {
+      console.log("🔑 Logged in wallet:", address);
+      upsertUser(address);
+    }
+  }, [address]);
+
+  return null; // nothing to render
+}
+
+export default function App() {
   useEffect(() => {
     setupDatabase();
-    LogBox.ignoreLogs(['Non-serializable values were found in the navigation state']);
   }, []);
 
   return (
-    <WalletProvider>
+    <AbstraxionProvider config={{ appName: "SuperfanVerified" }}>
+      <AuthSync />
       <NavigationContainer linking={linking}>
-        <View style={{ flex: 1 }}>
-          <AppNavigator />
-          <Button title="Show Users in Console" onPress={fetchUsers} />
-        </View>
+        <AppNavigator />
       </NavigationContainer>
-    </WalletProvider>
+    </AbstraxionProvider>
   );
 }
