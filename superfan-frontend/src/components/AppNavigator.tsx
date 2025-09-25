@@ -1,50 +1,49 @@
-import React, { useContext } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { WalletContext } from './providers/WalletProvider';
-import * as Linking from 'expo-linking';
+import React, { useContext } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { WalletContext } from "./providers/WalletProvider";
 
 // Screens
-import HomeScreen from './screens/HomeScreen';
-import WalletScreen from './screens/WalletScreen';
-import DashboardScreen from './screens/DashboardScreen';
-import ArtistDashboard from './screens/ArtistDashboard';
-import QRScannerScreen from './screens/QRScannerScreen';
-import ScansScreen from './screens/ScansScreen';
-import UsersScreen from './screens/UsersScreen';
-import LeaderboardScreen from './screens/LeaderboardScreen';
-import VotingHistoryScreen from './screens/VotingHistoryScreen';
-import EventCheckInScreen from './screens/EventCheckInScreen';
-import StakingScreen from './screens/StakingScreen';
-import GovernanceScreen from './screens/GovernanceScreen';
+import HomeScreen from "./screens/HomeScreen";
+import WalletScreen from "./screens/WalletScreen";
+import DashboardScreen from "./screens/DashboardScreen";
+import ArtistDashboard from "./screens/ArtistDashboard";
+import QRScannerScreen from "./screens/QRScannerScreen";
+import ScansScreen from "./screens/ScansScreen";
+import UsersScreen from "./screens/UsersScreen";
+import LeaderboardScreen from "./screens/LeaderboardScreen";
+import VotingHistoryScreen from "./screens/VotingHistoryScreen";
+import EventCheckInScreen from "./screens/EventCheckInScreen";
+import StakingScreen from "./screens/StakingScreen";
+import GovernanceScreen from "./screens/GovernanceScreen";
 
-// 🆕 Checkpoint 2 Screens
-import VerificationScreen from './screens/VerificationScreen';
-import ScoreScreen from './screens/ScoreScreen';
+// 🆕 Checkpoint 2
+import VerificationScreen from "./screens/VerificationScreen";
+import ScoreScreen from "./screens/ScoreScreen";
+
+const Stack = createNativeStackNavigator();
 
 const linking = {
-  prefixes: ['superfanverified://'],
+  prefixes: ["superfanverified://"],
   config: {
     screens: {
-      Home: 'home',
-      Wallet: 'wallet',
-      Dashboard: 'dashboard',
-      ArtistDashboard: 'artist',
-      QRScanner: 'scan',
-      Scans: 'scans',
-      Users: 'users',
-      LeaderboardScreen: 'leaderboard',
-      VotingHistory: 'voting',
-      EventCheckIn: 'event',
-      Staking: 'staking',
-      Governance: 'governance',
-      VerificationScreen: 'verify', // 🆕 Added
-      ScoreScreen: 'score',         // 🆕 Added
+      Home: "home",
+      Wallet: "wallet",
+      Dashboard: "dashboard",
+      ArtistDashboard: "artist",
+      QRScanner: "scan",
+      Scans: "scans",
+      Users: "users",
+      LeaderboardScreen: "leaderboard",
+      VotingHistory: "voting",
+      EventCheckIn: "event",
+      Staking: "staking",
+      Governance: "governance",
+      VerificationScreen: "verify", // 🆕
+      ScoreScreen: "score",         // 🆕
     },
   },
 };
-
-const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   const wallet = useContext(WalletContext);
@@ -52,7 +51,7 @@ export default function AppNavigator() {
   return (
     <NavigationContainer linking={linking}>
       <Stack.Navigator
-        initialRouteName={wallet?.connected ? 'Home' : 'Wallet'}
+        initialRouteName={wallet?.connected ? "Home" : "Wallet"}
         screenOptions={{ headerShown: true }}
       >
         <Stack.Screen name="Home" component={HomeScreen} />
