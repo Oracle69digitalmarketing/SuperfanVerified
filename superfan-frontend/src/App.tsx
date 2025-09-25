@@ -4,12 +4,15 @@ import { NavigationContainer } from "@react-navigation/native";
 import * as SQLite from "expo-sqlite";
 import * as Sentry from "sentry-expo";
 import AppNavigator from "./AppNavigator";
-import { AbstraxionProvider, useAbstraxion } from "@burnt-labs/abstraxion-react-native";
+import {
+  AbstraxionProvider,
+  useAbstraxion,
+} from "@burnt-labs/abstraxion-react-native";
 
-// Local DB
+// --- Local DB ---
 const db = SQLite.openDatabase("fanbase.db");
 
-// Deep linking
+// --- Deep Linking ---
 const linking = {
   prefixes: ["superfanverified://"],
   config: {
@@ -30,15 +33,14 @@ const linking = {
   },
 };
 
-// DB Setup
+// --- DB Setup ---
 const setupDatabase = () => {
   db.transaction((tx) => {
     tx.executeSql(
       `CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE,
-        email TEXT UNIQUE,
-        wallet_address TEXT UNIQUE,
+        username TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL,
         referral_code TEXT UNIQUE,
         referred_by TEXT,
         points INTEGER DEFAULT 0,
@@ -56,53 +58,34 @@ const setupDatabase = () => {
   });
 };
 
-// Insert or update logged-in user
-const upsertUser = (walletAddress: string) => {
-  if (!walletAddress) return;
-  db.transaction((tx) => {
-    tx.executeSql(
-      `INSERT OR IGNORE INTO users (username, email, wallet_address, points, rank) 
-       VALUES (?, ?, ?, ?, ?)`,
-      [
-        `user_${walletAddress.slice(0, 6)}`, // placeholder username
-        `${walletAddress}@superfan.io`,     // placeholder email
-        walletAddress,
-        0,
-        0,
-      ],
-      () => console.log(`✅ User ${walletAddress} upserted`),
-      (_, error) => {
-        console.error("❌ upsert error:", error);
-        Sentry.Native.captureException(error);
-        return false;
-      }
-    );
-  });
-};
-
-// Wrapper to sync Abstraxion login with SQLite
-function AuthSync() {
-  const { address } = useAbstraxion();
+// --- Session Bootstrapper ---
+const SessionBootstrap = () => {
+  const { account, connect, disconnect } = useAbstraxion();
 
   useEffect(() => {
-    if (address) {
-      console.log("🔑 Logged in wallet:", address);
-      upsertUser(address);
-    }
-  }, [address]);
+    console.log("🔗 Current account:", account);
+    // Auto-connect flow can be added here if needed
+  }, [account]);
 
-  return null; // nothing to render
-}
+  return null; // no UI, just manages session
+};
 
+// --- Root App ---
 export default function App() {
   useEffect(() => {
     setupDatabase();
+    LogBox.ignoreLogs(["Non-serializable values"]); // keep logs clean
   }, []);
 
   return (
-    <AbstraxionProvider config={{ appName: "SuperfanVerified" }}>
-      <AuthSync />
+    <AbstraxionProvider
+      config={{
+        appName: "SuperfanVerified",
+        chainId: "xion-testnet-1", // change for mainnet later
+      }}
+    >
       <NavigationContainer linking={linking}>
+        <SessionBootstrap />
         <AppNavigator />
       </NavigationContainer>
     </AbstraxionProvider>
