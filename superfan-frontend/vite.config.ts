@@ -6,15 +6,11 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
   server: {
     port: 3000,
-    open: true,
-  },
-  build: {
-    outDir: "dist",
-    sourcemap: true,
+    open: true, // auto-open browser
   },
 });
