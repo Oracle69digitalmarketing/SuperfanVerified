@@ -11,11 +11,18 @@
       "distribution": "internal"
     },
     "production": {
+      "env": {
+        "EXPO_PUBLIC_ENV": "production"
+      },
       "android": {
         "buildType": "app-bundle"
       },
       "ios": {
         "buildType": "archive"
+      },
+      "web": {
+        "buildCommand": "expo export:web",
+        "outputDir": "web-build"
       }
     }
   },

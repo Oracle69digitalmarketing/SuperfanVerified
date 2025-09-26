@@ -1,8 +1,5 @@
+// controllers/userController.js
 import User from '../models/User.js';
-// import redis from 'redis'; // 🔒 Redis disabled
-
-// const client = redis.createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
-// client.connect().catch(console.error);
 
 // 🧑 Create or update user with referral logic
 export const createUser = async (req, res) => {
@@ -35,8 +32,7 @@ export const createUser = async (req, res) => {
         tier: 'Bronze',
       });
 
-      // 🏆 Sync Redis leaderboard (disabled)
-      // await client.zAdd('leaderboard_global', { score: 0, value: user._id.toString() });
+      // 🏆 Redis leaderboard sync disabled
     } else {
       // Optional: update name if passed
       if (name) user.name = name;
@@ -62,5 +58,32 @@ export const listUsers = async (_req, res) => {
   } catch (err) {
     console.error('listUsers error:', err);
     res.status(500).json({ error: 'listUsers failed' });
+  }
+};
+
+// 🔑 Passport helper for social login
+export const handleUser = async (profile, provider) => {
+  try {
+    const walletAddress = profile.id;
+    const name = profile.displayName || 'Unknown';
+
+    // Check if user exists
+    let user = await User.findOne({ wallet_address: walletAddress });
+    if (!user) {
+      const referralCode = walletAddress.slice(-6).toUpperCase();
+
+      user = await User.create({
+        name,
+        wallet_address: walletAddress,
+        referralCode,
+        referredBy: null,
+        fanStreak: { current: 0, longest: 0, lastScanDate: null },
+        tier: 'Bronze',
+      });
+    }
+    return user;
+  } catch (err) {
+    console.error(`handleUser error [${provider}]:`, err);
+    return null;
   }
 };

@@ -31,6 +31,14 @@ const config: ExpoConfig = {
     favicon: './assets/favicon.png',
   },
   extra: {
+    // Backend / API
+    API_BASE_URL: process.env.API_BASE_URL,
+    FRONTEND_URL: process.env.FRONTEND_URL,
+    FRONTEND_SCHEME: process.env.FRONTEND_SCHEME,
+    EXPO_PREVIEW_URL: process.env.EXPO_PREVIEW_URL,
+    EXPO_STAGING_URL: process.env.EXPO_STAGING_URL,
+    EXPO_PRODUCTION_URL: process.env.EXPO_PRODUCTION_URL,
+
     // --- Xion / RUM ---
     RUM_CONTRACT_ADDRESS: process.env.EXPO_PUBLIC_RUM_CONTRACT_ADDRESS,
     RECLAIM_PROVIDER_ID: process.env.EXPO_PUBLIC_RECLAIM_PROVIDER_ID,
@@ -57,4 +65,5 @@ const config: ExpoConfig = {
   },
 };
 
+// Ensure EAS sees this
 export default config;

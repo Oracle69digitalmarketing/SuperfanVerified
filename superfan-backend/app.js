@@ -20,7 +20,26 @@ const app = express();
 // ===== Middleware =====
 app.use(morgan("dev"));
 app.use(express.json());
-app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
+
+// ===== Dynamic CORS =====
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(",")
+  : [];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow REST tools like Postman (no origin)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Not allowed by CORS: ${origin}`));
+      }
+    },
+    credentials: true,
+  })
+);
+
 app.use(passport.initialize());
 
 // ===== Health check =====
@@ -30,11 +49,9 @@ app.get("/", (req, res) => res.send("✅ SuperfanVerified Backend Running"));
 app.use("/auth", authRoutes);
 
 // ===== Admin Gated Content Routes =====
-// Protected by authentication + admin check
 app.use("/admin/gated", requireAuth, requireAdmin, adminGatedRoutes);
 
 // ===== User-Facing Gated Content Routes =====
-// Protected by authentication
 app.use("/gated", requireAuth, userGatedRoutes);
 
 // ===== Fallback for unknown routes =====
@@ -46,7 +63,7 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`Frontend URL: ${process.env.FRONTEND_URL}`);
+  console.log("Allowed CORS origins:", allowedOrigins);
   console.log("Auth routes ready at:");
   console.log("  /auth/spotify");
   console.log("  /auth/google");

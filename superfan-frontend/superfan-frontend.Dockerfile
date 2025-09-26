@@ -1,17 +1,28 @@
-# Frontend Dockerfile
-
-# Stage 1: Build
+# -------- Stage 1: Build --------
 FROM node:18 AS builder
 
 WORKDIR /app
-COPY package*.json ./
-RUN npm install --frozen-lockfile
-COPY . .
-RUN npm run web-build   # Expo web build → outputs to web-build/
 
-# Stage 2: Serve
+# Install dependencies
+COPY package*.json ./
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Build (choose depending on setup: Vite or Expo web)
+# For Vite:
+RUN npm run build
+
+# For Expo web:
+# RUN npm run web-build
+
+# -------- Stage 2: Serve --------
 FROM nginx:alpine
-COPY --from=builder /app/web-build /usr/share/nginx/html
+
+# Copy build output
+COPY --from=builder /app/dist /usr/share/nginx/html
+# Or if Expo web: COPY --from=builder /app/web-build /usr/share/nginx/html
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
