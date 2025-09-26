@@ -13,4 +13,4 @@ eas secret:create --name EXPO_PUBLIC_FACEBOOK_APP_ID --value 1364017365148309
 eas secret:create --name EXPO_PUBLIC_TWITTER_CONSUMER_KEY --value LuP7Hcre4Wn3xVfdxQmlUKk0N
 
 # ---- Reclaim Provider ----
-eas secret:create --name EXPO_PUBLIC_RECLAIM_PROVIDER_ID --value xxxxx
+eas secret:create --name EXPO_PUBLIC_RECLAIM_PROVIDER_ID --value 0xE11e72D9D5f0593304CfD7D2feF95Ab54d245ae4
