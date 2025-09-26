@@ -1,21 +1,17 @@
 # Frontend Dockerfile
 
-FROM node:18
+# Stage 1: Build
+FROM node:18 AS builder
 
-# Set working directory
 WORKDIR /app
-
-# Copy package.json and lock file first (better caching)
 COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
-# Copy frontend source
+RUN npm install --frozen-lockfile
 COPY . .
+RUN npm run web-build   # Expo web build → outputs to web-build/
 
-# Expose React dev server port
-EXPOSE 19006
+# Stage 2: Serve
+FROM nginx:alpine
+COPY --from=builder /app/web-build /usr/share/nginx/html
 
-# Start Expo web/Metro bundler
-CMD ["npm", "start"]
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
