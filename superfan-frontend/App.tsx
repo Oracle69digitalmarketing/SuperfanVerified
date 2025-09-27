@@ -1,6 +1,6 @@
 import React from "react";
 import { Platform, View, Text, StyleSheet } from "react-native";
-import MainApp from "./components/MainApp";
+import MainApp from "./src/components/MainApp"; // ✅ corrected path
 
 export default function App() {
   // Web fallback
