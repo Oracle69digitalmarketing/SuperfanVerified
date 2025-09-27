@@ -45,9 +45,8 @@ export default function MainApp() {
   if (loading) {
     return (
       <View style={styles.splashContainer}>
-        {/* Optional: Add your logo here */}
-        {/* <Image source={require('./assets/logo.png')} style={styles.logo} /> */}
-        <Text style={styles.splashText}>SuperfanVerified</Text>
+        <Image source={require("./assets/superfan-logo.png")} style={styles.logo} />
+        <Text style={styles.splashText}>SUPERFAN VERIFIED</Text>
         <ActivityIndicator size="large" color="#007AFF" />
         <Text style={styles.loadingText}>Initializing app...</Text>
       </View>
@@ -81,18 +80,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#000", // Dark background for logo contrast
   },
   splashText: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "bold",
     marginBottom: 20,
-    color: "#007AFF",
+    color: "#00FF88", // Glowing green to match logo
+    textAlign: "center",
   },
   loadingText: {
     fontSize: 16,
     marginTop: 10,
-    color: "#555",
+    color: "#ccc",
   },
   container: {
     flex: 1,
@@ -111,8 +111,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   logo: {
-    width: 120,
-    height: 120,
+    width: 140,
+    height: 140,
     marginBottom: 20,
     resizeMode: "contain",
   },
