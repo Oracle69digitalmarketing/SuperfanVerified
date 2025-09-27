@@ -16,7 +16,7 @@ const config: ExpoConfig = {
     fallbackToCacheTimeout: 0,
   },
   assetBundlePatterns: ['**/*'],
-  plugins: ['expo-asset'], // ✅ Added plugin required by Expo
+  plugins: ['expo-asset'], // keep required plugin
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.yourcompany.superfanverified',
@@ -32,9 +32,9 @@ const config: ExpoConfig = {
     favicon: './assets/favicon.png',
   },
   extra: {
-    eas: {
-      projectId: '8203d4d6-e559-4279-9ddc-4403c4243c9f',
-    },
+    eas: { projectId: '8203d4d6-e559-4279-9ddc-4403c4243c9f' },
+
+    // API / Env
     API_BASE_URL: process.env.API_BASE_URL,
     FRONTEND_URL: process.env.FRONTEND_URL,
     FRONTEND_SCHEME: process.env.FRONTEND_SCHEME,
