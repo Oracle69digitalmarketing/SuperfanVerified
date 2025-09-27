@@ -10,23 +10,21 @@
     "preview": {
       "distribution": "internal"
     },
-    "production": {
-      "env": {
-        "EXPO_PUBLIC_ENV": "production"
-      },
-      "android": {
-        "buildType": "app-bundle"
-      },
-      "ios": {
-        "buildType": "archive"
-      },
-      "web": {
-        "buildCommand": "expo export:web",
-        "outputDir": "web-build"
-      }
-    }
+"production": {
+  "env": {
+    "EXPO_PUBLIC_ENV": "production"
   },
-  "submit": {
-    "production": {}
+  "expo": {
+    "version": "52.0.0"
+  },
+  "android": {
+    "buildType": "app-bundle"
+  },
+  "ios": {
+    "buildType": "archive"
+  },
+  "web": {
+    "buildCommand": "expo export:web",
+    "outputDir": "web-build"
   }
 }
