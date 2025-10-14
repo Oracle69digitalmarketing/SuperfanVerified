@@ -19,7 +19,8 @@ import GovernanceScreen from "./screens/GovernanceScreen";
 
 // 🆕 Checkpoint 2
 import VerificationScreen from "./screens/VerificationScreen";
-import ScoreScreen from "./screens/ScoreScreen";
+import ScoreScreen from "../screens/ScoreScreen";
+import GatedContentScreen from "../screens/GatedContentScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -41,6 +42,7 @@ const linking = {
       Governance: "governance",
       VerificationScreen: "verify", // 🆕
       ScoreScreen: "score",         // 🆕
+      GatedContent: "gated-content",
     },
   },
 };
@@ -68,6 +70,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Governance" component={GovernanceScreen} />
         <Stack.Screen name="VerificationScreen" component={VerificationScreen} /> {/* 🆕 */}
         <Stack.Screen name="ScoreScreen" component={ScoreScreen} />               {/* 🆕 */}
+        <Stack.Screen name="GatedContent" component={GatedContentScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

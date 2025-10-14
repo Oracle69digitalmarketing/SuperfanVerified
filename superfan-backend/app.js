@@ -8,6 +8,8 @@ import passport from "passport";
 import authRoutes from "./routes/auth.js";
 import adminGatedRoutes from "./routes/adminGatedContentRoutes.js"; // admin-facing
 import userGatedRoutes from "./routes/userGatedContentRoutes.js";   // user-facing
+import nftRoutes from "./routes/nftRoutes.js";
+import governanceRoutes from "./routes/governanceRoutes.js";
 import "./config/passport.js"; // initialize passport strategies
 
 import requireAuth from "./middleware/requireAuth.js";
@@ -54,23 +56,16 @@ app.use("/admin/gated", requireAuth, requireAdmin, adminGatedRoutes);
 // ===== User-Facing Gated Content Routes =====
 app.use("/gated", requireAuth, userGatedRoutes);
 
+// ===== NFT Routes =====
+app.use("/api/nft", requireAuth, nftRoutes);
+
+// ===== Governance Routes =====
+app.use("/api/governance", governanceRoutes);
+
 // ===== Fallback for unknown routes =====
 app.use((req, res) => {
   res.status(404).json({ error: "Route not found" });
 });
 
-// ===== Server =====
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log("Allowed CORS origins:", allowedOrigins);
-  console.log("Auth routes ready at:");
-  console.log("  /auth/spotify");
-  console.log("  /auth/google");
-  console.log("  /auth/facebook");
-  console.log("  /auth/twitter");
-  console.log("Admin gated content routes ready at:");
-  console.log("  /admin/gated/*");
-  console.log("User-facing gated content routes ready at:");
-  console.log("  /gated/*");
-});
+// ===== Export the app for the serverless handler =====
+export default app;

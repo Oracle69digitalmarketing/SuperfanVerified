@@ -1,0 +1,89 @@
+service: superfan-backend
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "dynamodb:DescribeTable"
+            - "dynamodb:Query"
+            - "dynamodb:Scan"
+            - "dynamodb:GetItem"
+            - "dynamodb:PutItem"
+            - "dynamodb:UpdateItem"
+            - "dynamodb:DeleteItem"
+          Resource:
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/SuperfanUsers"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/SuperfanScores"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/SuperfanProposals"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/SuperfanRefreshTokens"
+functions:
+  main:
+    handler: src/lambda.handler # Assuming the handler is in src/lambda.js
+    events:
+      - http:
+          method: any
+          path: /{proxy+}
+    environment:
+      USERS_TABLE: SuperfanUsers
+      SUPERFAN_SCORES_TABLE: SuperfanScores
+      PROPOSALS_TABLE: SuperfanProposals
+      REFRESH_TOKENS_TABLE: SuperfanRefreshTokens
+
+resources:
+  Resources:
+    SuperfanUsersTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        TableName: SuperfanUsers
+        AttributeDefinitions:
+          - AttributeName: "walletAddress"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "walletAddress"
+            KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    SuperfanScoresTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        TableName: SuperfanScores
+        AttributeDefinitions:
+          - AttributeName: "id"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "id"
+            KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    SuperfanProposalsTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        TableName: SuperfanProposals
+        AttributeDefinitions:
+          - AttributeName: "id"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "id"
+            KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    SuperfanRefreshTokensTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        TableName: SuperfanRefreshTokens
+        AttributeDefinitions:
+          - AttributeName: "token"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "token"
+            KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1

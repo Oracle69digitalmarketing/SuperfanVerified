@@ -138,7 +138,7 @@ MONGO_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/superfan
 # PostgreSQL (optional)
 DATABASE_URL=postgres://USER:PASSWORD@HOST:5432/DBNAME
 DB_USER=postgres
-DB_PASSWORD=postgres
+DB_PASSWORD=your-db-password
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=superfan

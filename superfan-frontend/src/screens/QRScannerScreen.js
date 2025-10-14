@@ -2,30 +2,51 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Button, Alert, FlatList, TouchableOpacity } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
-import { useWallet } from '../providers/WalletProvider';
+import { useWallet } from '../components/WalletProvider'; // Corrected path
 
 const QRScannerScreen = () => {
   const [scannedData, setScannedData] = useState<string | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const navigation = useNavigation();
 
-  const { wallet, scans, addScan, refreshScans } = useWallet();
+  const { account, xionClient, scans, addScan, refreshScans } = useWallet();
 
-  const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
-    Alert.alert('QR Code Scanned!', `Type: ${type}\nData: ${data}`);
+  const handleBarCodeScanned = async ({ type, data }: { type: string; data: string }) => {
     setScannedData(data);
+    Alert.alert('QR Code Scanned!', `Data: ${data}`);
 
-    // Save + sync
-    addScan(data);
+    if (!account || !xionClient) {
+      Alert.alert('Wallet Not Connected', 'Please connect your wallet first.');
+      return;
+    }
 
-    // Optional: deep link navigation
     try {
-      const url = new URL(data);
-      const screen = url.pathname.replace('/', '');
-      const params = Object.fromEntries(url.searchParams.entries());
-      navigation.navigate(screen as never, params as never);
+      // 1. Generate zkTLS proof for the scanned data
+      // This is a hypothetical function. The actual implementation will depend on the XION SDK's API.
+      const proof = await xionClient.zk.tls.generateProof({
+        // We need to define what we are proving here.
+        // For a concert ticket, we might be proving the validity of the ticket against a known issuer.
+        // For this example, I will just prove the raw data of the QR code.
+        data: data,
+      });
+
+      // 2. Submit the proof to a smart contract
+      const executeMsg = { add_attendance: { proof } }; // This is a hypothetical message
+      const result = await xionClient.execute(
+        account?.bech32Address,
+        process.env.EXPO_PUBLIC_ATTENDANCE_CONTRACT_ADDRESS, // A new contract for attendance
+        executeMsg,
+        "auto"
+      );
+
+      Alert.alert('Attendance Verified!', `Transaction Hash: ${result.transactionHash}`);
+
+      // 3. Save the scan locally (optional, but good for history)
+      addScan(data);
+
     } catch (error) {
-      console.log('Not a deep link, ignoring…');
+      Alert.alert('Error', 'Failed to verify attendance.');
+      console.error(error);
     }
   };
 

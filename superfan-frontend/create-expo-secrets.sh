@@ -10,7 +10,7 @@ eas secret:create --name EXPO_PUBLIC_GOOGLE_CLIENT_ID --value 172315192975-t9i7c
 eas secret:create --name EXPO_PUBLIC_FACEBOOK_APP_ID --value 1364017365148309
 
 # ---- Twitter ----
-eas secret:create --name EXPO_PUBLIC_TWITTER_CONSUMER_KEY --value LuP7Hcre4Wn3xVfdxQmlUKk0N
+eas secret:create --name EXPO_PUBLIC_TWITTER_CONSUMER_KEY --value your-twitter-consumer-key
 
 # ---- Reclaim Provider ----
 eas secret:create --name EXPO_PUBLIC_RECLAIM_PROVIDER_ID --value 0xE11e72D9D5f0593304CfD7D2feF95Ab54d245ae4

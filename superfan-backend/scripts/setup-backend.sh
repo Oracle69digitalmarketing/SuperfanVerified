@@ -225,11 +225,7 @@ EOT
 cat > .env <<'EOT'
 PORT=3000
 DB_USER=postgres
-DB_PASSWORD=postgres
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=superfan
-EOT
+DB_PASSWORD=your-db-password
 
 echo "✅ Backend files + .env created successfully!"
 echo "👉 Next steps:"

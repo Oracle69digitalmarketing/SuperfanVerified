@@ -1,7 +1,12 @@
-// controllers/userController.js
-import User from '../models/User.js';
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { nanoid } from "nanoid";
 
-// 🧑 Create or update user with referral logic
+const client = new DynamoDBClient({ region: process.env.AWS_REGION });
+const docClient = DynamoDBDocumentClient.from(client);
+
+const USERS_TABLE = process.env.USERS_TABLE || 'SuperfanUsers';
+
 export const createUser = async (req, res) => {
   try {
     const { walletAddress, name, referredBy } = req.body;
@@ -9,34 +14,65 @@ export const createUser = async (req, res) => {
       return res.status(400).json({ error: 'walletAddress required' });
     }
 
-    // Check if user exists
-    let user = await User.findOne({ wallet_address: walletAddress });
+    const getUserCommand = new GetCommand({
+      TableName: USERS_TABLE,
+      Key: { walletAddress },
+    });
+    let { Item: user } = await docClient.send(getUserCommand);
 
     if (!user) {
-      // Generate referral code
-      const referralCode = walletAddress.slice(-6).toUpperCase();
-
-      // Find referrer by referral code if provided
+      const referralCode = nanoid(8);
       let referrer = null;
       if (referredBy) {
-        referrer = await User.findOne({ referralCode: referredBy });
+        // This is a simplified query. In a real application, you would need a secondary index on the referralCode.
+        const scanCommand = new ScanCommand({
+            TableName: USERS_TABLE,
+            FilterExpression: "referralCode = :referralCode",
+            ExpressionAttributeValues: {
+                ":referralCode": referredBy,
+            },
+        });
+        const { Items } = await docClient.send(scanCommand);
+        if (Items && Items.length > 0) {
+            referrer = Items[0];
+        }
       }
 
-      // Create new user
-      user = await User.create({
+      user = {
+        walletAddress,
         name,
-        wallet_address: walletAddress,
         referralCode,
-        referredBy: referrer?._id || null,
+        referredBy: referrer ? referrer.walletAddress : null,
         fanStreak: { current: 0, longest: 0, lastScanDate: null },
-        tier: 'Bronze',
-      });
+        fanTier: 'Bronze',
+        points: 0,
+        rewards: [],
+        createdAt: new Date().toISOString(),
+      };
 
-      // 🏆 Redis leaderboard sync disabled
+      const putUserCommand = new PutCommand({
+        TableName: USERS_TABLE,
+        Item: user,
+      });
+      await docClient.send(putUserCommand);
+
     } else {
-      // Optional: update name if passed
-      if (name) user.name = name;
-      await user.save();
+      if (name) {
+        const updateUserCommand = new UpdateCommand({
+            TableName: USERS_TABLE,
+            Key: { walletAddress },
+            UpdateExpression: "set #name = :name",
+            ExpressionAttributeNames: {
+                "#name": "name",
+            },
+            ExpressionAttributeValues: {
+                ":name": name,
+            },
+            ReturnValues: "ALL_NEW",
+        });
+        const { Attributes } = await docClient.send(updateUserCommand);
+        user = Attributes;
+      }
     }
 
     res.json(user);
@@ -46,44 +82,54 @@ export const createUser = async (req, res) => {
   }
 };
 
-// 📋 List recent users
 export const listUsers = async (_req, res) => {
   try {
-    const users = await User.find()
-      .sort({ createdAt: -1 })
-      .limit(200)
-      .select('wallet_address name referralCode referredBy createdAt');
-
-    res.json(users);
+    const command = new ScanCommand({
+      TableName: USERS_TABLE,
+      Limit: 200,
+    });
+    const { Items } = await docClient.send(command);
+    res.json(Items);
   } catch (err) {
     console.error('listUsers error:', err);
     res.status(500).json({ error: 'listUsers failed' });
   }
 };
 
-// 🔑 Passport helper for social login
 export const handleUser = async (profile, provider) => {
-  try {
-    const walletAddress = profile.id;
-    const name = profile.displayName || 'Unknown';
+    try {
+        const walletAddress = profile.id;
+        const name = profile.displayName || 'Unknown';
 
-    // Check if user exists
-    let user = await User.findOne({ wallet_address: walletAddress });
-    if (!user) {
-      const referralCode = walletAddress.slice(-6).toUpperCase();
+        const getUserCommand = new GetCommand({
+            TableName: USERS_TABLE,
+            Key: { walletAddress },
+        });
+        let { Item: user } = await docClient.send(getUserCommand);
 
-      user = await User.create({
-        name,
-        wallet_address: walletAddress,
-        referralCode,
-        referredBy: null,
-        fanStreak: { current: 0, longest: 0, lastScanDate: null },
-        tier: 'Bronze',
-      });
+        if (!user) {
+            const referralCode = nanoid(8);
+            user = {
+                walletAddress,
+                name,
+                provider,
+                providerId: profile.id,
+                referralCode,
+                fanStreak: { current: 0, longest: 0, lastScanDate: null },
+                fanTier: 'Bronze',
+                points: 0,
+                rewards: [],
+                createdAt: new Date().toISOString(),
+            };
+            const putUserCommand = new PutCommand({
+                TableName: USERS_TABLE,
+                Item: user,
+            });
+            await docClient.send(putUserCommand);
+        }
+        return user;
+    } catch (err) {
+        console.error(`handleUser error [${provider}]:`, err);
+        return null;
     }
-    return user;
-  } catch (err) {
-    console.error(`handleUser error [${provider}]:`, err);
-    return null;
-  }
 };

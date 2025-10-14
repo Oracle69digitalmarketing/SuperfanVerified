@@ -1,120 +1,80 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import * as SQLite from 'expo-sqlite';
-import { WalletContext } from '../providers/WalletProvider';
+import { View, Text, FlatList, StyleSheet, Button, Alert } from 'react-native';
+import { useWallet } from '../components/WalletProvider'; // Corrected path
 import Constants from 'expo-constants';
 
-const db = SQLite.openDatabase('my-database.db');
 const API_URL = Constants.expoConfig?.extra?.apiUrl;
 
 const LeaderboardScreen = () => {
   const [leaderboard, setLeaderboard] = useState([]);
-  const wallet = useContext(WalletContext);
-  const walletAddress = wallet?.accounts?.[0];
+  const { account } = useWallet(); // Use account from our new WalletProvider
+  const walletAddress = account?.bech32Address;
 
   useEffect(() => {
-    const loadLocalLeaderboard = () => {
-      db.transaction(tx => {
-        tx.executeSql(
-          `CREATE TABLE IF NOT EXISTS votes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            proposal_id TEXT,
-            voted_at TEXT
-          );`
-        );
-
-        tx.executeSql(
-          `CREATE TABLE IF NOT EXISTS scans (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            raw_data TEXT,
-            scanned_at TEXT
-          );`
-        );
-
-        tx.executeSql(
-          `
-          SELECT 
-            users.id,
-            users.wallet_address,
-            users.chain_id,
-            COUNT(DISTINCT scans.id) AS scanCount,
-            (
-              SELECT COUNT(*) FROM votes WHERE votes.user_id = users.id
-            ) AS voteCount
-          FROM users
-          LEFT JOIN scans ON scans.raw_data LIKE '%' || users.wallet_address || '%'
-          GROUP BY users.id;
-          `,
-          [],
-          (_, { rows }) => {
-            const localData = rows._array.map(user => ({
-              id: user.id,
-              wallet_address: user.wallet_address,
-              chain_id: user.chain_id,
-              scanCount: user.scanCount,
-              voteCount: user.voteCount,
-              points: user.scanCount + 5 + (user.voteCount * 2),
-              source: 'local',
-            }));
-            setLeaderboard(prev => [...prev, ...localData]);
-          },
-          (_, error) => {
-            console.error('SQLite leaderboard query error:', error);
-          }
-        );
-      });
-    };
-
     const loadSuperfanScores = async () => {
       try {
         const res = await fetch(`${API_URL}/leaderboard/superfan-top`);
         const scores = await res.json();
 
-        const formatted = scores.map((entry, index) => ({
-          id: `sf-${index}`,
+        const formatted = scores.map((entry: any) => ({
+          id: entry._id,
           wallet_address: entry.walletAddress,
           artist: entry.artist,
           points: entry.score,
-          source: 'superfan',
         }));
 
-        setLeaderboard(prev => [...formatted, ...prev]);
+        setLeaderboard(formatted);
       } catch (err) {
         console.error('Superfan leaderboard fetch failed:', err);
       }
     };
 
-    loadLocalLeaderboard();
     loadSuperfanScores();
   }, []);
 
-  const renderItem = ({ item, index }) => {
+  const handleMintBadge = async (tier: string) => {
+    if (!walletAddress) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/nft/mint`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress, tier }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        Alert.alert('Success', `You have minted the ${tier} badge!`);
+      } else {
+        throw new Error(data.error || 'Failed to mint badge');
+      }
+    } catch (err) {
+      Alert.alert('Error', err.message);
+    }
+  };
+
+  const renderItem = ({ item, index }: { item: any, index: number }) => {
     const isCurrentUser = item.wallet_address === walletAddress;
     return (
       <View style={[styles.item, isCurrentUser && styles.highlight]}>
         <Text style={styles.rank}>#{index + 1}</Text>
         <View style={styles.details}>
           <Text style={styles.name}>{item.wallet_address || 'Unnamed Fan'}</Text>
-          <Text style={styles.points}>Points: {item.points}</Text>
-          <Text style={styles.breakdown}>
-            {item.source === 'superfan'
-              ? `Artist: ${item.artist}`
-              : `Scans: ${item.scanCount} | Votes: ${item.voteCount} | Chain: ${item.chain_id}`}
-          </Text>
+          <Text style={styles.points}>Superfan Coins: {item.points}</Text>
+          <Text style={styles.breakdown}>Artist: {item.artist} | Tier: {item.fanTier}</Text>
+          {isCurrentUser && (
+            <Button title={`Mint ${item.fanTier} Badge`} onPress={() => handleMintBadge(item.fanTier)} />
+          )}
         </View>
       </View>
     );
   };
 
-  const sortedLeaderboard = leaderboard.sort((a, b) => b.points - a.points);
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🏆 Fan Leaderboard</Text>
+      <Text style={styles.title}>🏆 Superfan Leaderboard</Text>
       {walletAddress && <Text style={styles.meta}>Your Wallet: {walletAddress}</Text>}
       <FlatList
-        data={sortedLeaderboard}
+        data={leaderboard}
         keyExtractor={item => item.id.toString()}
         renderItem={renderItem}
       />
