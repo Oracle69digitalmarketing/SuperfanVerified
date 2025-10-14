@@ -31,7 +31,7 @@
 |               | React Navigation                         | Screen navigation.                                    |
 |               | Expo Auth Session                        | Handling OAuth flows for external services.           |
 | **Backend**   | Node.js & Express.js                     | REST API for the application.                         |
-|               | PostgreSQL & MongoDB                     | Polyglot persistence for relational and document data. |
+|               | Amazon DynamoDB                          | Fully managed, serverless NoSQL database.             |
 |               | Passport.js                              | Authentication with a wide range of OAuth providers.  |
 | **AI & ML**   | Amazon Bedrock (Claude 3)                | Powering the AI agents for recommendations and analysis. |
 |               | Generative AI for Images                 | Creating unique fan art for the NFT badges.           |
@@ -48,7 +48,10 @@
 
 ## 🚀 Getting Started
 
-Please see the [deployment.md](deployment.md) file for detailed instructions on how to set up the project and deploy it to AWS.
+For a detailed guide on how to set up your local environment, AWS resources, and deploy the application, please see the following documents:
+
+*   **[Project Setup Guide](project.md):** A step-by-step guide to setting up your AWS environment with the AWS CDK.
+*   **[Deployment Guide](deployment.md):** A detailed guide on how to deploy both the frontend and the backend.
 
 ## Submission Deliverables
 

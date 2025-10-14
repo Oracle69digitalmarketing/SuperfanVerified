@@ -4,7 +4,7 @@ This document provides a detailed guide on how to deploy both the frontend and t
 
 ## Prerequisites
 
-*   An AWS account with the AWS CLI installed and configured.
+*   An AWS account with the AWS CLI installed and configured with a user that has administrator permissions (for the initial deployment).
 *   A GitHub, GitLab, or Bitbucket account with your project's code.
 *   Node.js and npm installed on your local machine.
 *   The Serverless Framework installed globally (`npm install -g serverless`).
@@ -14,13 +14,18 @@ This document provides a detailed guide on how to deploy both the frontend and t
 
 ## Part 1: Backend Deployment (AWS Lambda + API Gateway)
 
-The backend is a serverless application that is deployed to AWS Lambda and API Gateway using the Serverless Framework.
+The backend is a serverless application defined with the Serverless Framework (`serverless.yml`) and deployed to AWS Lambda and API Gateway.
 
 ### Step 1: Configure Backend Environment Variables
 
-Before you deploy, you need to set up the environment variables for the backend. The backend uses a `.env` file for this. You can copy the `.env.example` file to `.env` and fill in the values.
+Before you deploy, you need to set up the environment variables for the backend. The backend uses a `.env` file for this.
 
-**Important:** The `serverless.yml` file we created will automatically create the DynamoDB tables for you. You just need to provide the AWS credentials with the necessary permissions.
+1.  In the `superfan-backend` directory, copy the `.env.example` file to a new file named `.env`.
+2.  Fill in the values for the following variables in the `.env` file:
+    *   `JWT_SECRET`: A secret key for signing JSON Web Tokens.
+    *   `REFRESH_TOKEN_EXPIRES_DAYS`: The number of days a refresh token is valid.
+    *   `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET`: Your Spotify API credentials.
+    *   (Add any other secrets for the OAuth providers you are using).
 
 ### Step 2: Deploy the Backend
 
@@ -36,7 +41,7 @@ Before you deploy, you need to set up the environment variables for the backend.
     ```bash
     npm run deploy
     ```
-    The Serverless Framework will now package your application, create the necessary AWS resources (including the DynamoDB tables), and deploy the code.
+    The Serverless Framework will now read your `serverless.yml` file, package your application, create the necessary AWS resources (including the four DynamoDB tables), and deploy the code.
 
 4.  **Get the API URL:** After the deployment is complete, the Serverless Framework will output the URL of your deployed API. It will look something like this:
     `https://xxxxxxxxx.execute-api.us-east-1.amazonaws.com/`
@@ -51,19 +56,19 @@ The frontend is a React Native application built with Expo. We will use EAS (Exp
 
 ### Step 1: Configure Frontend Environment Variables
 
-The frontend needs to know the URL of the deployed backend. You will need to create a secret in your EAS project for this.
+The frontend needs to know the URL of the deployed backend and other secrets. You will need to create secrets in your EAS project for these.
 
 1.  Log in to your Expo account in your terminal:
     ```bash
     eas login
     ```
-2.  Create a secret for the API URL:
+2.  Create secrets for your project. You can do this one by one:
     ```bash
     eas secret:create --name API_URL --value <your-backend-api-url>
+    eas secret:create --name EXPO_PUBLIC_SPOTIFY_CLIENT_ID --value <your-spotify-client-id>
+    # ... and so on for all the secrets in your app.config.ts
     ```
-    Replace `<your-backend-api-url>` with the URL you got from the backend deployment.
-
-You will also need to create secrets for the other environment variables in `app.config.ts`, such as the Spotify and Twitter API keys.
+    Alternatively, you can use the `create-expo-secrets.sh` script as a template.
 
 ### Step 2: Build the Application
 
@@ -79,15 +84,13 @@ You will also need to create secrets for the other environment variables in `app
     ```bash
     eas build --platform all
     ```
-    This command will start a build for both Android and iOS. You can also specify a single platform (`--platform android` or `--platform ios`).
+    This command will start a build for both Android and iOS.
 
-4.  EAS will guide you through the rest of the process. It will ask you to create a project if you haven't already, and it will handle the signing of your application.
+4.  EAS will guide you through the rest of the process, including creating a project and handling app signing.
 
 ### Step 3: Submit to App Stores
 
-Once the build is complete, you can download the `apk` (for Android) or `ipa` (for iOS) file from your Expo account and submit it to the Google Play Store or the Apple App Store.
-
-For the hackathon, you can also just provide a link to the build on the EAS website, which will allow the judges to download and install the app on their devices.
+Once the build is complete, you can download the application from the EAS website and submit it to the app stores. For the hackathon, providing a link to the EAS build is sufficient.
 
 ---
 
