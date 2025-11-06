@@ -33,7 +33,7 @@
     "expo-notifications": "^0.31.4",
     "expo-sqlite": "~15.2.14",
     "react": "18.2.0",
-    "react-native": "0.74.5",
+    "react-native": "0.82.1",
     "react-native-dotenv": "^3.4.11",
     "typescript": "4.9.4"
   },
